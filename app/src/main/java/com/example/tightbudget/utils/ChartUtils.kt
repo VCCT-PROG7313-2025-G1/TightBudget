@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.view.View
+import android.view.ViewGroup
 import com.example.tightbudget.data.Category
 import java.util.*
 
@@ -103,5 +104,25 @@ object ChartUtils {
         val donutChart = createDonutChartView(context, categoryAmounts)
 
         container.addView(donutChart)
+    }
+
+    fun displayDonutChart(
+        context: Context,
+        container: ViewGroup,
+        categoryData: Map<String, Double>
+    ) {
+        // Convert string keys to valid Category enums
+        val convertedData = categoryData.mapNotNull { (name, amount) ->
+            val category = try {
+                Category.valueOf(name.uppercase()) // Ensure enum name matches
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+            category?.let { it to amount.toFloat() }
+        }.toMap()
+
+        val chartView = DonutChartView(context, convertedData)
+        container.removeAllViews()
+        container.addView(chartView)
     }
 }

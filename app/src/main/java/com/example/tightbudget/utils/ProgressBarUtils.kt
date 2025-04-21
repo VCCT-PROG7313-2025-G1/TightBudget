@@ -17,7 +17,18 @@ import com.example.tightbudget.data.Category
 object ProgressBarUtils {
 
     /**
-     * Apply a category-colored progress bar style
+     * Sets progress based on current vs goal value, applies styling too.
+     */
+    fun setProgress(progressBar: ProgressBar, current: Double, goal: Double) {
+        val percentage = if (goal != 0.0) ((current / goal) * 100).toInt() else 0
+        progressBar.progress = percentage.coerceAtMost(100)
+
+        // Optional styling based on progress range
+        applyBudgetStatusProgressBar(progressBar, progressBar.context, current.toFloat(), goal.toFloat())
+    }
+
+    /**
+     * Apply a category-colored progress bar style.
      */
     fun applyCategoryProgressBar(progressBar: ProgressBar, context: Context, category: Category) {
         val color = DrawableUtils.getCategoryColor(context, category)
@@ -25,7 +36,7 @@ object ProgressBarUtils {
     }
 
     /**
-     * Apply a status-colored progress bar style based on budget usage percentage
+     * Apply a status-colored progress bar style based on budget usage percentage.
      */
     fun applyBudgetStatusProgressBar(progressBar: ProgressBar, context: Context, spent: Float, budget: Float) {
         val color = DrawableUtils.getBudgetStatusColor(context, spent, budget)
@@ -33,39 +44,31 @@ object ProgressBarUtils {
     }
 
     /**
-     * Creates a custom progress bar drawable with the specified color
+     * Creates and applies a custom progress bar drawable with the specified colour.
      */
     fun applyColoredProgressBar(progressBar: ProgressBar, context: Context, progressColor: Int) {
-        // Background track drawable
+        val cornerRadius = context.resources.displayMetrics.density * 3 // 3dp
+
         val backgroundDrawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(ContextCompat.getColor(context, R.color.background_gray))
-            cornerRadius = context.resources.displayMetrics.density * 3 // 3dp corner radius
+            this.cornerRadius = cornerRadius
         }
 
-        // Progress indicator drawable
         val progressDrawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(progressColor)
-            cornerRadius = context.resources.displayMetrics.density * 3 // 3dp corner radius
+            this.cornerRadius = cornerRadius
         }
 
-        // Create a clip drawable for the progress
-        val clipDrawable = ClipDrawable(
-            progressDrawable,
-            Gravity.START,
-            ClipDrawable.HORIZONTAL
-        )
+        val clipDrawable = ClipDrawable(progressDrawable, Gravity.START, ClipDrawable.HORIZONTAL)
 
-        // Create layer drawable with background and progress
         val layers = arrayOf<Drawable>(backgroundDrawable, clipDrawable)
-        val layerDrawable = LayerDrawable(layers)
+        val layerDrawable = LayerDrawable(layers).apply {
+            setId(0, android.R.id.background)
+            setId(1, android.R.id.progress)
+        }
 
-        // Set ids for the layers
-        layerDrawable.setId(0, android.R.id.background)
-        layerDrawable.setId(1, android.R.id.progress)
-
-        // Apply the custom drawable to the progress bar
         progressBar.progressDrawable = layerDrawable
     }
 }

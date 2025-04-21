@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardBudgetGoals"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Title Row -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Budget Goals"
+                android:textColor="@color/text_dark"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_alignParentStart="true" />
+
+            <TextView
+                android:id="@+id/manageBudgetButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manage"
+                android:textColor="@color/primary_purple_light"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
+
+        <!-- Goal Item Template -->
+        <!-- Repeat for each category -->
+
+        <!-- Housing -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏠 Housing"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentStart="true" />
+
+                <TextView
+                    android:id="@+id/housingProgressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R650/R800"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/housingProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="4dp"
+                android:progressTint="@color/teal_light"
+                android:progressBackgroundTint="@color/gray_light" />
+        </LinearLayout>
+
+        <!-- Food -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🍔 Food"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentStart="true" />
+
+                <TextView
+                    android:id="@+id/foodProgressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R425.75/R400"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/foodProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="4dp"
+                android:progressTint="@color/red"
+                android:progressBackgroundTint="@color/gray_light" />
+        </LinearLayout>
+
+        <!-- Transport -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🚗 Transport"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentStart="true" />
+
+                <TextView
+                    android:id="@+id/transportProgressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R232.50/R250"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/transportProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="4dp"
+                android:progressTint="@color/teal_light"
+                android:progressBackgroundTint="@color/gray_light" />
+        </LinearLayout>
+
+        <!-- Entertainment -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎬 Entertainment"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentStart="true" />
+
+                <TextView
+                    android:id="@+id/entertainmentProgressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R205.02/R150"
+                    android:textColor="@color/text_medium"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/entertainmentProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="4dp"
+                android:progressTint="@color/red"
+                android:progressBackgroundTint="@color/gray_light" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
