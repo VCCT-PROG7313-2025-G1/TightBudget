@@ -1,0 +1,159 @@
+package com.example.tightbudget.utils
+
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
+import android.view.View
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.example.tightbudget.R
+import com.example.tightbudget.data.Category
+
+/**
+ * Utility class for creating drawable shapes programmatically
+ */
+object DrawableUtils {
+
+    /**
+     * Creates a solid circle with the specified color
+     */
+    fun createCircleDrawable(color: Int): ShapeDrawable {
+        val drawable = ShapeDrawable(OvalShape())
+        drawable.paint.color = color
+        return drawable
+    }
+
+    /**
+     * Creates a solid circle with the specified color using GradientDrawable
+     * (offers more customization options than ShapeDrawable)
+     */
+    fun createCircle(color: Int, size: Int = -1): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.OVAL
+        drawable.setColor(color)
+
+        if (size > 0) {
+            drawable.setSize(size, size)
+        }
+
+        return drawable
+    }
+
+    /**
+     * Creates a circle with stroke/outline
+     */
+    fun createCircleOutline(strokeColor: Int, strokeWidth: Int, fillColor: Int = 0): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.OVAL
+        drawable.setStroke(strokeWidth, strokeColor)
+
+        if (fillColor != 0) {
+            drawable.setColor(fillColor)
+        }
+
+        return drawable
+    }
+
+    /**
+     * Creates a rounded rectangle background
+     */
+    fun createRoundedBackground(color: Int, cornerRadius: Float): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.RECTANGLE
+        drawable.setColor(color)
+        drawable.cornerRadius = cornerRadius
+        return drawable
+    }
+
+    /**
+     * Creates a progress bar background with track and progress colors
+     */
+    fun createProgressDrawable(trackColor: Int, progressColor: Int): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.RECTANGLE
+        drawable.setColor(progressColor)
+        drawable.cornerRadius = 3f // Match your design
+        return drawable
+    }
+
+    /**
+     * Creates a white circle (replacement for @drawable/circle_white)
+     */
+    fun createWhiteCircle(context: Context): GradientDrawable {
+        return createCircle(ContextCompat.getColor(context, R.color.white))
+    }
+
+    /**
+     * Creates a yellow circle (replacement for @drawable/circle_yellow)
+     */
+    fun createYellowCircle(context: Context): GradientDrawable {
+        return createCircle(ContextCompat.getColor(context, R.color.yellow))
+    }
+
+    /**
+     * Creates a light gray circle (replacement for @drawable/circle_gray_light)
+     */
+    fun createLightGrayCircle(context: Context): GradientDrawable {
+        return createCircle(ContextCompat.getColor(context, R.color.background_gray))
+    }
+
+    /**
+     * Apply circle background to a view
+     */
+    fun applyCircleBackground(view: View, color: Int) {
+        view.background = createCircle(color)
+    }
+
+    /**
+     * Apply white circle background to a view (for profile icon, etc.)
+     */
+    fun applyWhiteCircleBackground(view: View, context: Context) {
+        view.background = createWhiteCircle(context)
+    }
+
+    /**
+     * Apply light gray circle background to a view (for transaction icons, badges, etc.)
+     */
+    fun applyLightGrayCircleBackground(view: View, context: Context) {
+        view.background = createLightGrayCircle(context)
+    }
+
+    /**
+     * Gets the color associated with a spending category
+     */
+    fun getCategoryColor(context: Context, category: Category): Int {
+        return when (category) {
+            Category.HOUSING -> ContextCompat.getColor(context, R.color.teal_light)
+            Category.FOOD -> ContextCompat.getColor(context, R.color.primary_purple_light)
+            Category.TRANSPORT -> ContextCompat.getColor(context, R.color.blue_light)
+            Category.ENTERTAINMENT -> ContextCompat.getColor(context, R.color.orange)
+            Category.SHOPPING -> ContextCompat.getColor(context, R.color.yellow)
+            Category.UTILITIES -> ContextCompat.getColor(context, R.color.red_light)
+            Category.HEALTH -> ContextCompat.getColor(context, R.color.green_light)
+            Category.OTHER -> ContextCompat.getColor(context, R.color.gray_medium)
+        }
+    }
+
+    /**
+     * Creates a circle indicator for a specific category
+     */
+    fun getCategoryCircle(context: Context, category: Category): Drawable {
+        val color = getCategoryColor(context, category)
+        return createCircle(color)
+    }
+
+    /**
+     * Gets appropriate progress bar color based on budget status
+     */
+    fun getBudgetStatusColor(context: Context, spent: Float, budget: Float): Int {
+        val percentUsed = (spent / budget) * 100
+
+        return when {
+            percentUsed > 100 -> ContextCompat.getColor(context, R.color.red_light)
+            percentUsed > 90 -> ContextCompat.getColor(context, R.color.orange)
+            else -> ContextCompat.getColor(context, R.color.teal_light)
+        }
+    }
+}
