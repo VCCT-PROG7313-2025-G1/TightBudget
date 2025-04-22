@@ -14,6 +14,9 @@ import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import com.example.tightbudget.data.Category
 import com.example.tightbudget.databinding.ActivityAddTransactionBinding
+import com.example.tightbudget.models.CategoryItem
+import com.example.tightbudget.ui.CategoryPickerBottomSheet
+import com.example.tightbudget.ui.CreateCategoryBottomSheet
 import com.example.tightbudget.utils.EmojiUtils
 import java.io.File
 import java.text.SimpleDateFormat
@@ -63,6 +66,18 @@ class AddTransactionActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityAddTransactionBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.viewAllCategoriesButton.setOnClickListener {
+            showCategoryPicker()
+        }
+
+        binding.addCategoryChip.setOnClickListener {
+            showCategoryPicker()
+        }
+
+        binding.createNewCategoryButton.setOnClickListener {
+            showCreateCategoryModal()
+        }
 
         window.decorView.setOnApplyWindowInsetsListener { _, insets ->
             binding.headerFrame.setPadding(0, insets.systemWindowInsetTop, 0, 0)
@@ -118,6 +133,7 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Initialises the category chips and assigns emojis using EmojiUtils
     private fun setupCategoryChips() {
+
         binding.foodChip.isChecked = true
 
         binding.foodChip.text = EmojiUtils.getCategoryEmoji(Category.FOOD)
@@ -141,16 +157,6 @@ class AddTransactionActivity : AppCompatActivity() {
         binding.housingChip.setOnClickListener {
             selectedCategory = "Housing"
             updateSelectedCategoryDisplay()
-        }
-        binding.addCategoryChip.setOnClickListener {
-            Toast.makeText(this, "Add new category feature coming soon", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.viewAllCategoriesButton.setOnClickListener {
-            Toast.makeText(this, "View all categories feature coming soon", Toast.LENGTH_SHORT).show()
-        }
-        binding.createNewCategoryButton.setOnClickListener {
-            Toast.makeText(this, "Create new category feature coming soon", Toast.LENGTH_SHORT).show()
         }
 
         updateSelectedCategoryDisplay()
@@ -205,7 +211,8 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Formats and updates the date text on screen
     private fun updateTransactionDateDisplay() {
-        val formattedDate = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(selectedDate.time)
+        val formattedDate =
+            SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(selectedDate.time)
         binding.transactionDateButton.text = "$formattedDate 📅"
     }
 
@@ -223,7 +230,10 @@ class AddTransactionActivity : AppCompatActivity() {
                 recurringDate.timeInMillis = selectedDate.timeInMillis
                 recurringDate.add(Calendar.DAY_OF_YEAR, 30)
 
-                val formatted = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(recurringDate.time)
+                val formatted = SimpleDateFormat(
+                    "EEEE, d MMMM yyyy",
+                    Locale.getDefault()
+                ).format(recurringDate.time)
                 binding.recurringDatePicker.text = "Repeats on: $formatted"
             }
         }
@@ -231,7 +241,8 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Sets up the add photo button to use the camera or gallery
     private fun setupPhotoButton() {
-        val cameraIconTextView = binding.addPhotoButton.findViewById<TextView>(R.id.cameraIconTextView)
+        val cameraIconTextView =
+            binding.addPhotoButton.findViewById<TextView>(R.id.cameraIconTextView)
         cameraIconTextView?.text = "📷"
 
         binding.addPhotoButton.setOnClickListener {
@@ -256,7 +267,11 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun takePhoto() {
         val photoFile = createImageFile()
         photoFile?.let {
-            receiptImageUri = FileProvider.getUriForFile(this, "${applicationContext.packageName}.fileprovider", it)
+            receiptImageUri = FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.fileprovider",
+                it
+            )
             takePictureLauncher.launch(receiptImageUri)
         }
     }
@@ -310,15 +325,57 @@ class AddTransactionActivity : AppCompatActivity() {
         val merchant = binding.merchantInput.text.toString()
         val description = binding.descriptionInput.text.toString()
 
-        Log.d(TAG, "Saving transaction: $amount, $selectedCategory, ${if (isExpense) "Expense" else "Income"}")
+        Log.d(
+            TAG,
+            "Saving transaction: $amount, $selectedCategory, ${if (isExpense) "Expense" else "Income"}"
+        )
         Log.d(TAG, "Merchant/Source: $merchant")
         Log.d(TAG, "Description: $description")
-        Log.d(TAG, "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)}")
+        Log.d(
+            TAG,
+            "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)}"
+        )
         Log.d(TAG, "Recurring: $isRecurring")
 
         Toast.makeText(this, "Transaction saved successfully!", Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, DashboardActivity::class.java))
         finish()
+    }
+
+    // Opens a modal to create a new category
+    private fun showCategoryPicker() {
+        val sampleCategories = listOf(
+            CategoryItem("Food", "🍔", "#FFA726", 400.0),
+            CategoryItem("Transport", "🚗", "#66BB6A", 250.0),
+            CategoryItem("Entertainment", "🎬", "#29B6F6", 200.0),
+            CategoryItem("Housing", "🏠", "#AB47BC", 800.0),
+            CategoryItem("Groceries", "🛒", "#FF7043", 300.0),
+            CategoryItem("Salary", "💼", "#42A5F5", 12000.0)
+        )
+
+        val picker = CategoryPickerBottomSheet(
+            categoryList = sampleCategories,
+            onCategorySelected = { category ->
+                selectedCategory = category.name
+                updateSelectedCategoryDisplay(category)
+            },
+            onCreateNewClicked = {
+                Log.d(TAG, "Create New Category clicked")  // Debugging
+                showCreateCategoryModal()
+            }
+        )
+        picker.show(supportFragmentManager, "CategoryPicker")
+    }
+
+    private fun showCreateCategoryModal() {
+        Log.d("AddTransactionActivity", "Showing CreateCategoryBottomSheet")
+
+        val createSheet = CreateCategoryBottomSheet()
+        createSheet.show(supportFragmentManager, "CreateCategory")
+    }
+
+    private fun updateSelectedCategoryDisplay(category: CategoryItem) {
+        binding.selectedCategoryDisplay.text = "${category.emoji} ${category.name}"
     }
 
     // Handles the back button click

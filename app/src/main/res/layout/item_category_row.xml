@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/categoryItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Colour Circle -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/categoryColorCircle"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        app:cardCornerRadius="12dp"
+        android:layout_marginEnd="12dp"
+        app:cardElevation="0dp" />
+
+    <!-- Emoji -->
+    <TextView
+        android:id="@+id/categoryEmoji"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:text="🍔"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/categoryName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Food"
+        android:textSize="16sp"
+        android:textColor="@color/text_dark"
+        android:layout_weight="1" />
+</LinearLayout>
