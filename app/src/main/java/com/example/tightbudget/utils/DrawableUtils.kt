@@ -6,7 +6,6 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
 import android.view.View
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.tightbudget.R
 import com.example.tightbudget.data.Category
@@ -155,5 +154,22 @@ object DrawableUtils {
             percentUsed > 90 -> ContextCompat.getColor(context, R.color.orange)
             else -> ContextCompat.getColor(context, R.color.teal_light)
         }
+    }
+
+    /**
+     * Apply a dashed gray circle for locked/unearned badges
+     */
+    fun applyDashedCircleBackground(view: View, context: Context) {
+        val drawable = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(ContextCompat.getColor(context, android.R.color.transparent))
+            setStroke(
+                3, // stroke width
+                ContextCompat.getColor(context, R.color.gray_light),
+                10f, // dash width
+                10f  // dash gap
+            )
+        }
+        view.background = drawable
     }
 }

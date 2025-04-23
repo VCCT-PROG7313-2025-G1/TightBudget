@@ -124,4 +124,16 @@
                 android:layout_marginTop="4dp" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- All Badges button -->
+    <TextView
+        android:id="@+id/allBadgesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="All Badges"
+        android:textColor="@color/primary_purple_light"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_gravity="end"
+        android:layout_margin="12dp" />
 </androidx.cardview.widget.CardView>

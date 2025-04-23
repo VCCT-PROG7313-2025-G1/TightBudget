@@ -2,10 +2,12 @@ package com.example.tightbudget
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tightbudget.utils.ChartUtils
+import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
 
 /**
@@ -27,6 +29,12 @@ class DashboardActivity : AppCompatActivity() {
         setupNavigationButtons()
         setupBudgetGoals()
         setupSpendingChart()
+
+        // Set badge emojis using EmojiUtils
+        EmojiUtils.setEmojiText(findViewById(R.id.saverBadgeIcon), EmojiUtils.getAchievementEmoji("saver"), "")
+        EmojiUtils.setEmojiText(findViewById(R.id.consistentBadgeIcon), EmojiUtils.getAchievementEmoji("consistent"), "")
+        EmojiUtils.setEmojiText(findViewById(R.id.transportBadgeIcon), EmojiUtils.getAchievementEmoji("transport"), "")
+        EmojiUtils.setEmojiText(findViewById(R.id.lockedBadgeIcon), EmojiUtils.getAchievementEmoji("locked"), "")
     }
 
     /**
@@ -100,6 +108,10 @@ class DashboardActivity : AppCompatActivity() {
 
         root.findViewById<TextView>(R.id.seeAllTransactionsButton).setOnClickListener {
             startActivity(Intent(this, TransactionsActivity::class.java))
+        }
+
+        root.findViewById<TextView>(R.id.allBadgesButton)?.setOnClickListener {
+            startActivity(Intent(this, AchievementsActivity::class.java))
         }
     }
 

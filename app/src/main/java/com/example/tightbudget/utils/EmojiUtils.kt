@@ -68,10 +68,19 @@ object EmojiUtils {
      */
     fun getAchievementEmoji(achievement: String): String {
         return when (achievement.lowercase()) {
-            "saver" -> EMOJI_SAVER
-            "consistent" -> EMOJI_CONSISTENT
-            "transport" -> EMOJI_TRANSPORT_ACHIEVEMENT
-            else -> EMOJI_LOCKED
+            "saver", "budget master", "super saver" -> "💰"
+            "streak keeper" -> "🔥"
+            "transport", "transport pro" -> "🚗"
+            "food manager" -> "🍽️"
+            "consistent", "daily logger" -> "📅"
+            "photographer" -> "📸"
+            "housing pro" -> "🏠"
+            "challenge master" -> "🏆"
+            "fun manager" -> "🎥"
+            "investor" -> "📈"
+            "tech wizard" -> "💻"
+            "budget guru" -> "👑"
+            else -> "🔒" // locked or unknown or coming soon
         }
     }
 
