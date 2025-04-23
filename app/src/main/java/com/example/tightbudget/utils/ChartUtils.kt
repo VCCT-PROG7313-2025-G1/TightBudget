@@ -1,10 +1,7 @@
 package com.example.tightbudget.utils
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
 import android.view.View
 import android.view.ViewGroup
 import com.example.tightbudget.data.Category
@@ -124,5 +121,77 @@ object ChartUtils {
         val chartView = DonutChartView(context, convertedData)
         container.removeAllViews()
         container.addView(chartView)
+    }
+
+    /**
+     * Adds a line chart to a specified container using provided labelled point data.
+     */
+    fun addLineChartToContainer(
+        context: Context,
+        container: ViewGroup,
+        data: Map<String, Float>
+    ) {
+        val chart = LineChartView(context, data)
+        container.removeAllViews()
+        container.addView(chart)
+    }
+
+    /**
+     * A custom view that draws a connected line chart from key-value data points.
+     */
+    class LineChartView(context: Context, private val data: Map<String, Float>) : View(context) {
+
+        // Paint for the connecting line
+        private val linePaint = Paint().apply {
+            color = Color.parseColor("#66BB6A") // Teal green
+            strokeWidth = 6f
+            style = Paint.Style.STROKE
+            isAntiAlias = true
+        }
+
+        // Paint for each dot on the line
+        private val pointPaint = Paint().apply {
+            color = Color.parseColor("#66BB6A")
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+
+        // Paint for X-axis labels
+        private val textPaint = Paint().apply {
+            color = Color.DKGRAY
+            textSize = 24f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+
+            if (data.isEmpty()) return
+
+            val padding = 60f
+            val chartWidth = width - 2 * padding
+            val chartHeight = height - 2 * padding
+            val entries = data.entries.toList()
+            val maxY = (data.values.maxOrNull() ?: 1f).coerceAtLeast(1f)
+
+            // Draw lines and labels
+            for (i in 0 until entries.size - 1) {
+                val x1 = padding + (i * chartWidth / (entries.size - 1))
+                val y1 = padding + chartHeight * (1 - (entries[i].value / maxY))
+                val x2 = padding + ((i + 1) * chartWidth / (entries.size - 1))
+                val y2 = padding + chartHeight * (1 - (entries[i + 1].value / maxY))
+
+                canvas.drawLine(x1, y1, x2, y2, linePaint)
+                canvas.drawCircle(x1, y1, 6f, pointPaint)
+                canvas.drawText(entries[i].key, x1, height - 16f, textPaint)
+            }
+
+            // Draw final data point and label
+            val lastX = padding + ((entries.size - 1) * chartWidth / (entries.size - 1))
+            val lastY = padding + chartHeight * (1 - (entries.last().value / maxY))
+            canvas.drawCircle(lastX, lastY, 6f, pointPaint)
+            canvas.drawText(entries.last().key, lastX, height - 16f, textPaint)
+        }
     }
 }
