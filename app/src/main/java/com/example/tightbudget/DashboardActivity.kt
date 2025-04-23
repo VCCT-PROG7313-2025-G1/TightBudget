@@ -17,6 +17,11 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        // Open ProfileActivity when the user taps the profile icon
+        findViewById<FrameLayout>(R.id.profileButton).setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
         setupBottomNavigation()
         setupQuickActions()
         setupNavigationButtons()
@@ -28,7 +33,8 @@ class DashboardActivity : AppCompatActivity() {
      * Handles bottom navigation bar.
      */
     private fun setupBottomNavigation() {
-        val bottomNavBar = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNavBar)
+        val bottomNavBar =
+            findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNavBar)
         bottomNavBar.selectedItemId = R.id.nav_dashboard
 
         bottomNavBar.setOnItemSelectedListener { item ->
@@ -39,21 +45,25 @@ class DashboardActivity : AppCompatActivity() {
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 R.id.nav_add_transaction -> {
                     startActivity(Intent(this, AddTransactionActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 R.id.nav_wallet -> {
                     startActivity(Intent(this, TransactionsActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 R.id.nav_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 else -> false
             }
         }
@@ -102,7 +112,11 @@ class DashboardActivity : AppCompatActivity() {
         ProgressBarUtils.setProgress(root.findViewById(R.id.housingProgressBar), 650.0, 800.0)
         ProgressBarUtils.setProgress(root.findViewById(R.id.foodProgressBar), 425.75, 400.0)
         ProgressBarUtils.setProgress(root.findViewById(R.id.transportProgressBar), 232.50, 250.0)
-        ProgressBarUtils.setProgress(root.findViewById(R.id.entertainmentProgressBar), 205.02, 150.0)
+        ProgressBarUtils.setProgress(
+            root.findViewById(R.id.entertainmentProgressBar),
+            205.02,
+            150.0
+        )
     }
 
     /**
