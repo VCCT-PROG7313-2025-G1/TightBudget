@@ -40,28 +40,23 @@
                 android:layout_alignParentEnd="true" />
         </RelativeLayout>
 
-        <!-- Goal Item Template -->
-        <!-- Repeat for each category -->
-
-        <!-- Housing -->
+        <!-- Goal Items -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginBottom="12dp">
 
+            <!-- Housing -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🏠 Housing"
                     android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentStart="true" />
-
+                    android:textSize="14sp" />
                 <TextView
                     android:id="@+id/housingProgressText"
                     android:layout_width="wrap_content"
@@ -77,9 +72,7 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="6dp"
-                android:layout_marginTop="4dp"
-                android:progressTint="@color/teal_light"
-                android:progressBackgroundTint="@color/gray_light" />
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Food -->
@@ -92,15 +85,12 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🍔 Food"
                     android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentStart="true" />
-
+                    android:textSize="14sp" />
                 <TextView
                     android:id="@+id/foodProgressText"
                     android:layout_width="wrap_content"
@@ -116,9 +106,7 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="6dp"
-                android:layout_marginTop="4dp"
-                android:progressTint="@color/red"
-                android:progressBackgroundTint="@color/gray_light" />
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Transport -->
@@ -131,15 +119,12 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🚗 Transport"
                     android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentStart="true" />
-
+                    android:textSize="14sp" />
                 <TextView
                     android:id="@+id/transportProgressText"
                     android:layout_width="wrap_content"
@@ -155,9 +140,7 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="6dp"
-                android:layout_marginTop="4dp"
-                android:progressTint="@color/teal_light"
-                android:progressBackgroundTint="@color/gray_light" />
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Entertainment -->
@@ -169,15 +152,12 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🎬 Entertainment"
                     android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentStart="true" />
-
+                    android:textSize="14sp" />
                 <TextView
                     android:id="@+id/entertainmentProgressText"
                     android:layout_width="wrap_content"
@@ -193,9 +173,7 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="6dp"
-                android:layout_marginTop="4dp"
-                android:progressTint="@color/red"
-                android:progressBackgroundTint="@color/gray_light" />
+                android:layout_marginTop="4dp" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

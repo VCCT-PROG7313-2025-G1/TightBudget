@@ -2,11 +2,11 @@ package com.example.tightbudget
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tightbudget.utils.ChartUtils
+import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
 
@@ -29,12 +29,7 @@ class DashboardActivity : AppCompatActivity() {
         setupNavigationButtons()
         setupBudgetGoals()
         setupSpendingChart()
-
-        // Set badge emojis using EmojiUtils
-        EmojiUtils.setEmojiText(findViewById(R.id.saverBadgeIcon), EmojiUtils.getAchievementEmoji("saver"), "")
-        EmojiUtils.setEmojiText(findViewById(R.id.consistentBadgeIcon), EmojiUtils.getAchievementEmoji("consistent"), "")
-        EmojiUtils.setEmojiText(findViewById(R.id.transportBadgeIcon), EmojiUtils.getAchievementEmoji("transport"), "")
-        EmojiUtils.setEmojiText(findViewById(R.id.lockedBadgeIcon), EmojiUtils.getAchievementEmoji("locked"), "")
+        setupAchievementBadges()
     }
 
     /**
@@ -146,5 +141,37 @@ class DashboardActivity : AppCompatActivity() {
 
         val chartContainer = root.findViewById<FrameLayout>(R.id.chartContainer)
         ChartUtils.displayDonutChart(this, chartContainer, categoryData)
+    }
+
+    /**
+     * Sets badge emojis and background styles.
+     */
+    private fun setupAchievementBadges() {
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+
+        // Saver
+        val saverBadge = root.findViewById<TextView>(R.id.saverBadgeIcon)
+        EmojiUtils.setEmojiText(saverBadge, EmojiUtils.getAchievementEmoji("saver"), "")
+        DrawableUtils.applyCircleBackground(saverBadge, getColor(R.color.green_light))
+
+        // Consistent
+        val consistentBadge = root.findViewById<TextView>(R.id.consistentBadgeIcon)
+        EmojiUtils.setEmojiText(consistentBadge, EmojiUtils.getAchievementEmoji("consistent"), "")
+        DrawableUtils.applyCircleBackground(consistentBadge, getColor(R.color.orange))
+
+        // Transport
+        val transportBadge = root.findViewById<TextView>(R.id.transportBadgeIcon)
+        EmojiUtils.setEmojiText(transportBadge, EmojiUtils.getAchievementEmoji("transport"), "")
+        DrawableUtils.applyCircleBackground(transportBadge, getColor(R.color.blue_light))
+
+        // Locked
+        val lockedBadge = root.findViewById<TextView>(R.id.lockedBadgeIcon)
+        EmojiUtils.setEmojiText(lockedBadge, EmojiUtils.getAchievementEmoji("locked"), "")
+        lockedBadge.alpha = 0.5f
+        lockedBadge.background = DrawableUtils.createCircleOutline(
+            strokeColor = getColor(R.color.gray_medium),
+            strokeWidth = 3,
+            fillColor = getColor(R.color.background_gray)
+        )
     }
 }
