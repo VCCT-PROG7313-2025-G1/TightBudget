@@ -8,132 +8,148 @@
     app:cardCornerRadius="15dp"
     app:cardElevation="2dp">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="20dp"
-        android:gravity="center_horizontal">
+        android:padding="20dp">
 
-        <!-- Saver -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <!-- Section Title -->
+        <TextView
+            android:id="@+id/achievementsTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
+            android:text="Your Achievements"
+            android:textColor="@color/text_dark"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- "All Badges" top-right -->
+        <TextView
+            android:id="@+id/allBadgesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All Badges"
+            android:textColor="@color/primary_purple_light"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@id/achievementsTitle" />
+
+        <!-- Badge row -->
+        <LinearLayout
+            android:id="@+id/badgeRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/achievementsTitle"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
             android:gravity="center">
 
-            <TextView
-                android:id="@+id/saverBadgeIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text=""
-                android:textSize="24sp"
-                android:gravity="center"
-                android:padding="8dp"
-                android:contentDescription="Saver Badge Icon" />
-
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Single Badge Item -->
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Saver"
-                android:textColor="@color/text_medium"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
 
-        <!-- Consistent -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+                <TextView
+                    android:id="@+id/saverBadgeIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:text=""
+                    android:textSize="26sp"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:contentDescription="Saver Badge Icon" />
 
-            <TextView
-                android:id="@+id/consistentBadgeIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text=""
-                android:textSize="24sp"
-                android:gravity="center"
-                android:padding="8dp"
-                android:contentDescription="Consistent Badge Icon" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Saver"
+                    android:textColor="@color/text_medium"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Consistent"
-                android:textColor="@color/text_medium"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
 
-        <!-- Transport -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+                <TextView
+                    android:id="@+id/consistentBadgeIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:text=""
+                    android:textSize="26sp"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:contentDescription="Consistent Badge Icon" />
 
-            <TextView
-                android:id="@+id/transportBadgeIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text=""
-                android:textSize="24sp"
-                android:gravity="center"
-                android:padding="8dp"
-                android:contentDescription="Transport Badge Icon" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Consistent"
+                    android:textColor="@color/text_medium"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Transport"
-                android:textColor="@color/text_medium"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
 
-        <!-- Locked -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+                <TextView
+                    android:id="@+id/transportBadgeIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:text=""
+                    android:textSize="26sp"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:contentDescription="Transport Badge Icon" />
 
-            <TextView
-                android:id="@+id/lockedBadgeIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text=""
-                android:alpha="0.5"
-                android:textSize="24sp"
-                android:gravity="center"
-                android:padding="8dp"
-                android:contentDescription="Locked Badge Icon" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Transport"
+                    android:textColor="@color/text_medium"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Locked"
-                android:textColor="@color/text_light"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-    </LinearLayout>
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
 
-    <!-- All Badges button -->
-    <TextView
-        android:id="@+id/allBadgesButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="All Badges"
-        android:textColor="@color/primary_purple_light"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:layout_gravity="end"
-        android:layout_margin="12dp" />
+                <TextView
+                    android:id="@+id/lockedBadgeIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:text=""
+                    android:textSize="26sp"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:alpha="0.5"
+                    android:contentDescription="Locked Badge Icon" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Locked"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>
