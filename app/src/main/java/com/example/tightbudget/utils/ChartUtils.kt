@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.tightbudget.data.Category
 import java.util.*
+import kotlin.math.min
 
 /**
  * Utility class for chart creation and manipulation
@@ -27,8 +28,9 @@ object ChartUtils {
         private val rect = RectF()
         private val centerText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
-            textSize = 40f
+            textSize = 54f
             textAlign = Paint.Align.CENTER
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
 
         private var total: Float = data.values.sum()
@@ -44,10 +46,9 @@ object ChartUtils {
 
             val width = width.toFloat()
             val height = height.toFloat()
-            val radius = (Math.min(width, height) / 2 * 0.8).toFloat()
+            val radius = (min(width, height) / 2 * 0.8).toFloat()
             val strokeWidth = radius * 0.2f
 
-            // Set up the rectangle for the donut
             rect.set(
                 width / 2 - radius,
                 height / 2 - radius,
@@ -55,7 +56,6 @@ object ChartUtils {
                 height / 2 + radius
             )
 
-            // Draw the donut segments
             var startAngle = 0f
             data.forEach { (category, amount) ->
                 val sweepAngle = 360f * (amount / total)
@@ -72,7 +72,7 @@ object ChartUtils {
             canvas.drawText(
                 centerTextString,
                 width / 2,
-                height / 2 + centerText.textSize / 3, // Adjust for vertical centering
+                height / 2 + centerText.textSize / 3f,
                 centerText
             )
         }
