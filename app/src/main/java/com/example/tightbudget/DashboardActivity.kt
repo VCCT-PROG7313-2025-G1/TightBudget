@@ -2,9 +2,12 @@ package com.example.tightbudget
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tightbudget.data.Category
 import com.example.tightbudget.utils.ChartUtils
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
@@ -141,6 +144,9 @@ class DashboardActivity : AppCompatActivity() {
 
         val chartContainer = root.findViewById<FrameLayout>(R.id.chartContainer)
         ChartUtils.displayDonutChart(this, chartContainer, categoryData)
+
+        // Populate spending legend
+        populateSpendingLegend()
     }
 
     /**
@@ -174,4 +180,63 @@ class DashboardActivity : AppCompatActivity() {
             fillColor = getColor(R.color.background_gray)
         )
     }
+
+    private fun populateSpendingLegend() {
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+        val legendContainer = root.findViewById<LinearLayout>(R.id.legendContainer)
+
+        // Clear existing items
+        legendContainer.removeAllViews()
+
+        val categoryData = mapOf(
+            Category.HOUSING to 650.0f,
+            Category.FOOD to 425.75f,
+            Category.TRANSPORT to 232.50f,
+            Category.ENTERTAINMENT to 205.02f
+        )
+
+        for ((category, amount) in categoryData) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 8, 0, 8)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                gravity = Gravity.CENTER_VERTICAL
+            }
+
+            val colorView = View(this).apply {
+                val params = LinearLayout.LayoutParams(12.dp, 12.dp)
+                params.setMargins(0, 0, 6.dp, 0)
+                layoutParams = params
+                background = DrawableUtils.getCategoryCircle(this@DashboardActivity, category)
+            }
+
+
+            val label = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                text = "${EmojiUtils.getCategoryEmoji(category)} ${
+                    category.name.lowercase().replaceFirstChar { it.uppercase() }
+                }"
+                setTextColor(getColor(R.color.text_medium))
+                textSize = 14f
+            }
+
+            val value = TextView(this).apply {
+                text = "R${"%,.2f".format(amount)}"
+                setTextColor(getColor(R.color.text_dark))
+                textSize = 14f
+            }
+
+            row.addView(colorView)
+            row.addView(label)
+            row.addView(value)
+
+            legendContainer.addView(row)
+        }
+    }
+
+    private val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
 }
