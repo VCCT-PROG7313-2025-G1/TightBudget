@@ -7,11 +7,17 @@ import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.tightbudget.adapters.TransactionAdapter
 import com.example.tightbudget.data.Category
+import com.example.tightbudget.models.Transaction
+import com.example.tightbudget.ui.TransactionDetailBottomSheet
 import com.example.tightbudget.utils.ChartUtils
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
+import java.util.Date
 
 /**
  * Dashboard screen showing financial summary, goals, charts and quick access buttons.
@@ -33,6 +39,7 @@ class DashboardActivity : AppCompatActivity() {
         setupBudgetGoals()
         setupSpendingChart()
         setupAchievementBadges()
+        setupRecentTransactions()
     }
 
     /**
@@ -236,6 +243,27 @@ class DashboardActivity : AppCompatActivity() {
             legendContainer.addView(row)
         }
     }
+
+    /**
+     * Sets up the recent transactions list.
+     */
+    private fun setupRecentTransactions() {
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+        val recyclerView = root.findViewById<RecyclerView>(R.id.recentTransactionsRecyclerView)
+
+        val dummyTransactions = listOf(
+            Transaction(1, "Checkers", "Food", 98.00, Date(), true),
+            Transaction(2, "Uber", "Transport", 45.50, Date(), true),
+            Transaction(3, "Salary", "Income", 2500.00, Date(), false)
+        )
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = TransactionAdapter(dummyTransactions) { clickedTransaction ->
+            TransactionDetailBottomSheet.newInstance(clickedTransaction)
+                .show(supportFragmentManager, "TransactionDetail")
+        }
+    }
+
 
     private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
