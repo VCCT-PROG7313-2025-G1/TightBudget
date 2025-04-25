@@ -15,14 +15,30 @@
         android:padding="20dp">
 
         <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Spending by Category"
-            android:textColor="@color/text_dark"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spending by Category"
+                android:textColor="@color/text_dark"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_alignParentStart="true" />
+
+            <TextView
+                android:id="@+id/viewAllSpendingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View All"
+                android:textColor="@color/primary_purple_light"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
 
         <!-- Chart placeholder -->
         <FrameLayout
