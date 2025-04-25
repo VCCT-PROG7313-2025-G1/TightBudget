@@ -4,8 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/primary_purple_light"
-    android:paddingTop="8dp"
+    android:fitsSystemWindows="true"
+    android:clipToPadding="false"
+    android:paddingTop="36dp"
     android:paddingBottom="8dp">
+
 
     <!-- Branding -->
     <LinearLayout
