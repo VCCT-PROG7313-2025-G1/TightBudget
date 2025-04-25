@@ -41,6 +41,7 @@
         android:background="@color/primary_purple_light"
         app:menu="@menu/bottom_navigation_menu"
         app:labelVisibilityMode="unlabeled"
+        app:itemIconSize="28dp"
         app:itemIconTint="@color/bottom_nav_item_colour"
         app:itemTextColor="@color/bottom_nav_item_colour" />
 </RelativeLayout>
