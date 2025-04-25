@@ -9,8 +9,12 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.ActivitySignupBinding
+import com.example.tightbudget.models.User
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
@@ -132,21 +136,25 @@ class SignupActivity : AppCompatActivity() {
                 binding.passwordStrengthText.text = ""
                 binding.passwordStrengthBar.setBackgroundColor(getColor(android.R.color.transparent))
             }
+
             password.length < 6 -> {
                 binding.passwordStrengthText.text = "Weak - too short"
                 binding.passwordStrengthText.setTextColor(getColor(R.color.red_light))
                 binding.passwordStrengthBar.setBackgroundColor(getColor(R.color.red_light))
             }
+
             !password.any { it.isDigit() } -> {
                 binding.passwordStrengthText.text = "Medium - add numbers"
                 binding.passwordStrengthText.setTextColor(getColor(R.color.teal_light))
                 binding.passwordStrengthBar.setBackgroundColor(getColor(R.color.teal_light))
             }
+
             !password.any { !it.isLetterOrDigit() } -> {
                 binding.passwordStrengthText.text = "Medium - add special characters"
                 binding.passwordStrengthText.setTextColor(getColor(R.color.teal_light))
                 binding.passwordStrengthBar.setBackgroundColor(getColor(R.color.teal_light))
             }
+
             else -> {
                 binding.passwordStrengthText.text = "Strong password"
                 binding.passwordStrengthText.setTextColor(getColor(R.color.green_light))
@@ -191,12 +199,12 @@ class SignupActivity : AppCompatActivity() {
     }
 
     private fun createAccount() {
-        val fullName = binding.fullNameInput.text.toString()
-        val email = binding.emailInput.text.toString()
+        val fullName = binding.fullNameInput.text.toString().trim()
+        val email = binding.emailInput.text.toString().trim()
         val password = binding.passwordInput.text.toString()
         val confirmPassword = binding.confirmPasswordInput.text.toString()
 
-        // Basic validation
+        // Validation checks
         if (fullName.isEmpty()) {
             Toast.makeText(this, "Please enter your full name", Toast.LENGTH_SHORT).show()
             return
@@ -208,7 +216,8 @@ class SignupActivity : AppCompatActivity() {
         }
 
         if (password.isEmpty() || password.length < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
@@ -218,19 +227,46 @@ class SignupActivity : AppCompatActivity() {
         }
 
         if (!isTermsChecked) {
-            Toast.makeText(this, "Please agree to the Terms and Privacy Policy", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please agree to the Terms and Privacy Policy", Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
-        // Here you would usually call an API to create the account
-        // For now, we'll just simulate a successful account creation
-        Log.d(TAG, "Account creation with name: $fullName, email: $email")
-        Toast.makeText(this, "Account created successfully", Toast.LENGTH_SHORT).show()
+        // Saving user to RoomDB
+        val db = AppDatabase.getDatabase(this)
+        val userDao = db.userDao()
 
-        // Navigate to login or main activity
-        // Intent(this, MainActivity::class.java).also {
-        //     it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        //     startActivity(it)
-        // }
+        val newUser = User(
+            username = fullName,
+            email = email,
+            password = password
+        )
+
+        lifecycleScope.launch {
+            try {
+                userDao.insertUser(newUser)
+                runOnUiThread {
+                    Toast.makeText(
+                        this@SignupActivity,
+                        "Account created successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    // Navigate to LoginActivity
+                    Intent(this@SignupActivity, LoginActivity::class.java).also {
+                        startActivity(it)
+                    }
+                    finish() // close signup
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating account: ${e.message}")
+                runOnUiThread {
+                    Toast.makeText(
+                        this@SignupActivity,
+                        "Error creating account",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 }
