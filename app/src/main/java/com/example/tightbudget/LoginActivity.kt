@@ -34,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
         // Login button click
         binding.loginButton.setOnClickListener {
             performLogin()
-        }
+            }
 
         // Sign up text click
         binding.signUpText.setOnClickListener {
@@ -112,11 +112,5 @@ class LoginActivity : AppCompatActivity() {
         // For now, we'll just simulate a successful login
         // TODO: Implement actual login logic
         Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-
-        // Navigate to main activity
-        // Intent(this, MainActivity::class.java).also {
-        //     it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        //     startActivity(it)
-        // }
     }
 }

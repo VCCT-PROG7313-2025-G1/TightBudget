@@ -246,16 +246,10 @@ class SignupActivity : AppCompatActivity() {
             try {
                 userDao.insertUser(newUser)
                 runOnUiThread {
-                    Toast.makeText(
-                        this@SignupActivity,
-                        "Account created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Navigate to LoginActivity
-                    Intent(this@SignupActivity, LoginActivity::class.java).also {
-                        startActivity(it)
-                    }
-                    finish() // close signup
+                    val intent = Intent(this@SignupActivity, SuccessActivity::class.java)
+                    intent.putExtra("USER_EMAIL", email)
+                    startActivity(intent)
+                    finish()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error creating account: ${e.message}")
