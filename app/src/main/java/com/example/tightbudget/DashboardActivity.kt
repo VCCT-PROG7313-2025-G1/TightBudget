@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.adapters.TransactionAdapter
 import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.data.Category
+import com.example.tightbudget.databinding.ActivityDashboardBinding
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.TransactionDetailBottomSheet
 import com.example.tightbudget.utils.ChartUtils
@@ -32,17 +33,25 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        val db = AppDatabase.getDatabase(this) // Initialise the database
-        val userDao = db.userDao() // Get the user DAO (Data Access Object)
+        // Find the TextViews manually since they are inside included layouts
+        val welcomeTextView = findViewById<TextView>(R.id.welcomeText)
+        val balanceAmountView = findViewById<TextView>(R.id.balanceAmount)
 
-        val userEmail = intent.getStringExtra("USER_EMAIL") // Get the email from the intent
+        // Initialise the database
+        val db = AppDatabase.getDatabase(this)
+        val userDao = db.userDao()
+
+        // Get the email from the intent
+        val userEmail = intent.getStringExtra("USER_EMAIL")
+
         if (!userEmail.isNullOrEmpty()) {
             lifecycleScope.launch {
                 val user = userDao.getUserByEmail(userEmail)
 
                 if (user != null) {
-                    // You can now use user.name, user.balance, etc.
-                    // Example: setting balance and welcome text (coming in next section)
+                    // Set welcome message and balance
+                    welcomeTextView.text = "Welcome back, ${user.fullName}!"
+                    balanceAmountView.text = "R%.2f".format(user.balance)
                 } else {
                     Log.e("DashboardActivity", "User not found in database for email: $userEmail")
                     Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT).show()
