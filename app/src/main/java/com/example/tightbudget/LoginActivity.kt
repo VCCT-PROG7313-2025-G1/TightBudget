@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.ActivityLoginBinding
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -34,7 +37,7 @@ class LoginActivity : AppCompatActivity() {
         // Login button click
         binding.loginButton.setOnClickListener {
             performLogin()
-            }
+        }
 
         // Sign up text click
         binding.signUpText.setOnClickListener {
@@ -95,20 +98,42 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    // Function to perform login action
     private fun performLogin() {
-        val username = binding.usernameInput.text.toString()
+        val email = binding.emailInput.text.toString().trim()
         val password = binding.passwordInput.text.toString()
-        val rememberMe = isRememberMeChecked
 
-        // Validate inputs
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show()
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_SHORT).show()
             return
         }
 
-        Log.d(TAG, "Login attempt with username: $username, remember me: $rememberMe")
+        val db = AppDatabase.getDatabase(this)
+        val userDao = db.userDao()
 
-        // TODO: Implement actual login logic
-        Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val user = userDao.getUserByEmail(email)
+
+            if (user == null) {
+                // User does not exist
+                runOnUiThread {
+                    Toast.makeText(this@LoginActivity, "User does not exist", Toast.LENGTH_SHORT).show()
+                }
+            } else if (user.password != password) {
+                // Incorrect password
+                runOnUiThread {
+                    Toast.makeText(this@LoginActivity, "Incorrect password", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // Successful login
+                runOnUiThread {
+                    Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                }
+            }
+        }
     }
 }
