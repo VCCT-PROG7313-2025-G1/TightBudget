@@ -28,6 +28,8 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        val userEmail = intent.getStringExtra("USER_EMAIL") // Get the email from the intent
+
         // Open ProfileActivity when the user taps the profile icon
         findViewById<FrameLayout>(R.id.profileButton).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
