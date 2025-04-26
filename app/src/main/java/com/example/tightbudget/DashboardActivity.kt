@@ -2,14 +2,17 @@ package com.example.tightbudget
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.adapters.TransactionAdapter
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.data.Category
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.TransactionDetailBottomSheet
@@ -17,6 +20,7 @@ import com.example.tightbudget.utils.ChartUtils
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
+import kotlinx.coroutines.launch
 import java.util.Date
 
 /**
@@ -28,7 +32,23 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        val db = AppDatabase.getDatabase(this) // Initialise the database
+        val userDao = db.userDao() // Get the user DAO (Data Access Object)
+
         val userEmail = intent.getStringExtra("USER_EMAIL") // Get the email from the intent
+        if (!userEmail.isNullOrEmpty()) {
+            lifecycleScope.launch {
+                val user = userDao.getUserByEmail(userEmail)
+
+                if (user != null) {
+                    // You can now use user.name, user.balance, etc.
+                    // Example: setting balance and welcome text (coming in next section)
+                } else {
+                    Log.e("DashboardActivity", "User not found in database for email: $userEmail")
+                    Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         // Open ProfileActivity when the user taps the profile icon
         findViewById<FrameLayout>(R.id.profileButton).setOnClickListener {
