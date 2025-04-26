@@ -2,21 +2,26 @@ package com.example.tightbudget
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.adapters.TransactionAdapter
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.data.Category
+import com.example.tightbudget.databinding.ActivityDashboardBinding
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.TransactionDetailBottomSheet
 import com.example.tightbudget.utils.ChartUtils
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
+import kotlinx.coroutines.launch
 import java.util.Date
 
 /**
@@ -27,6 +32,32 @@ class DashboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
+
+        // Find the TextViews manually since they are inside included layouts
+        val welcomeTextView = findViewById<TextView>(R.id.welcomeText)
+        val balanceAmountView = findViewById<TextView>(R.id.balanceAmount)
+
+        // Initialise the database
+        val db = AppDatabase.getDatabase(this)
+        val userDao = db.userDao()
+
+        // Get the email from the intent
+        val userEmail = intent.getStringExtra("USER_EMAIL")
+
+        if (!userEmail.isNullOrEmpty()) {
+            lifecycleScope.launch {
+                val user = userDao.getUserByEmail(userEmail)
+
+                if (user != null) {
+                    // Set welcome message and balance
+                    welcomeTextView.text = "Welcome back, ${user.fullName}!"
+                    balanceAmountView.text = "R%.2f".format(user.balance)
+                } else {
+                    Log.e("DashboardActivity", "User not found in database for email: $userEmail")
+                    Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         // Open ProfileActivity when the user taps the profile icon
         findViewById<FrameLayout>(R.id.profileButton).setOnClickListener {

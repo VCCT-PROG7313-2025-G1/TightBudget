@@ -130,6 +130,7 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
 
                     val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                    intent.putExtra("USER_EMAIL", email) // Pass the email to the next activity
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                 }

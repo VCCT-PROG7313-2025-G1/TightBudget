@@ -237,7 +237,7 @@ class SignupActivity : AppCompatActivity() {
         val userDao = db.userDao()
 
         val newUser = User(
-            username = fullName,
+            fullName = fullName,
             email = email,
             password = password
         )
