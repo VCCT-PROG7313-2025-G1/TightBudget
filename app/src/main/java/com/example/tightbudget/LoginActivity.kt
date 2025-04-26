@@ -108,8 +108,6 @@ class LoginActivity : AppCompatActivity() {
 
         Log.d(TAG, "Login attempt with username: $username, remember me: $rememberMe")
 
-        // Here you would usually call a function to authenticate the user
-        // For now, we'll just simulate a successful login
         // TODO: Implement actual login logic
         Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
     }
