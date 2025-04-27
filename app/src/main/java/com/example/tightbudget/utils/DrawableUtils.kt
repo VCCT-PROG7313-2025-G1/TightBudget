@@ -1,6 +1,7 @@
 package com.example.tightbudget.utils
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
@@ -162,6 +163,17 @@ object DrawableUtils {
             percentUsed > 100 -> ContextCompat.getColor(context, R.color.red_light)
             percentUsed > 90 -> ContextCompat.getColor(context, R.color.orange)
             else -> ContextCompat.getColor(context, R.color.teal_light)
+        }
+    }
+
+    /**
+     * Creates a highlighted circle drawable for selected/unlocked badges
+     */
+    fun createHighlightedCircleDrawable(color: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+            setStroke(6, Color.WHITE) // White border for highlight
         }
     }
 

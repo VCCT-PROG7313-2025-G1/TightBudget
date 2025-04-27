@@ -1,8 +1,10 @@
 package com.example.tightbudget.ui
 
 import android.app.AlertDialog
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +18,7 @@ import com.example.tightbudget.utils.EmojiUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 import androidx.core.graphics.toColorInt
+import com.example.tightbudget.utils.DrawableUtils
 
 /**
  * A bottom sheet dialog for creating a new custom category.
@@ -24,6 +27,7 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
 
     private var selectedEmoji: String = "📁"
     private var selectedColor: String = "#FF9800"
+    private var selectedColorView: View? = null
 
     private var _binding: FragmentCreateCategoryBinding? = null
     private val binding get() = _binding!!
@@ -113,13 +117,18 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
             "Fitness", "Personal Care", "Savings", "Childcare", "Donations"
         )
 
-        categoryNames.forEach { categoryName ->
+        binding.iconGrid.removeAllViews()
+
+        for (categoryName in categoryNames) {
             val emoji = EmojiUtils.getCategoryEmoji(categoryName)
 
             val emojiView = TextView(requireContext()).apply {
                 text = emoji
                 textSize = 24f
-                setPadding(16, 16, 16, 16)
+                gravity = Gravity.CENTER
+                layoutParams = ViewGroup.MarginLayoutParams(90, 90).apply {
+                    setMargins(12, 12, 12, 12)
+                }
                 setOnClickListener {
                     selectedEmoji = emoji
                     Toast.makeText(context, "Selected: $emoji", Toast.LENGTH_SHORT).show()
@@ -137,16 +146,33 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
             "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548", "#9E9E9E", "#607D8B"
         )
 
-        colorOptions.forEach { colorHex ->
-            val colorView = View(requireContext()).apply {
-                layoutParams = ViewGroup.LayoutParams(100, 100)
-                setBackgroundColor(colorHex.toColorInt())
+        binding.colorGrid.removeAllViews()
+
+        for (colorHex in colorOptions) {
+            val colorCircle = View(requireContext()).apply {
+                layoutParams = ViewGroup.MarginLayoutParams(90, 90).apply {
+                    setMargins(12, 12, 12, 12)
+                }
+                background = DrawableUtils.createCircleDrawable(Color.parseColor(colorHex))
                 setOnClickListener {
                     selectedColor = colorHex
-                    Toast.makeText(context, "Selected color: $colorHex", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Selected colour: $colorHex", Toast.LENGTH_SHORT).show()
+
+                    // Remove previous highlight
+                    selectedColorView?.background = DrawableUtils.createCircleDrawable(
+                        Color.parseColor(selectedColorView?.tag as? String ?: colorHex)
+                    )
+
+                    // Highlight current selection
+                    this.background = DrawableUtils.createHighlightedCircleDrawable(Color.parseColor(colorHex))
+
+                    selectedColorView = this
+                    this.tag = colorHex
                 }
+                tag = colorHex // Save the original color with the view
             }
-            binding.colorGrid.addView(colorView)
+
+            binding.colorGrid.addView(colorCircle)
         }
     }
 
