@@ -18,6 +18,7 @@ import com.example.tightbudget.utils.EmojiUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 import androidx.core.graphics.toColorInt
+import com.example.tightbudget.utils.CategoryConstants
 import com.example.tightbudget.utils.DrawableUtils
 
 /**
@@ -68,11 +69,27 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
         // Save category button
         binding.saveCategoryButton.setOnClickListener {
             val name = binding.categoryNameInput.text.toString().trim()
-            val budget = binding.budgetInput.text.toString().trim()
+            val budgetText = binding.budgetInput.text.toString().trim()
 
-            if (name.isEmpty() || budget.isEmpty()) {
+            if (name.isEmpty() || budgetText.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT)
                     .show()
+                return@setOnClickListener
+            }
+
+            val budgetAmount = try {
+                budgetText.toDouble()
+            } catch (e: NumberFormatException) {
+                Toast.makeText(requireContext(), "Invalid budget amount", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (budgetAmount < CategoryConstants.MINIMUM_BUDGET_AMOUNT) {
+                Toast.makeText(
+                    requireContext(),
+                    "Budget must be at least R${CategoryConstants.MINIMUM_BUDGET_AMOUNT.toInt()}",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
 
@@ -92,7 +109,8 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
             val newCategory = Category(
                 name = name,
                 emoji = selectedEmoji,
-                color = selectedColor
+                color = selectedColor,
+                budget = budgetAmount
             )
 
             lifecycleScope.launch {
@@ -164,7 +182,8 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
                     )
 
                     // Highlight current selection
-                    this.background = DrawableUtils.createHighlightedCircleDrawable(Color.parseColor(colorHex))
+                    this.background =
+                        DrawableUtils.createHighlightedCircleDrawable(Color.parseColor(colorHex))
 
                     selectedColorView = this
                     this.tag = colorHex

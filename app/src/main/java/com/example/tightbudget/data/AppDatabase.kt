@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.tightbudget.models.Category
 import com.example.tightbudget.models.User
 
-@Database(entities = [User::class, Category::class], version = 1)
+@Database(entities = [User::class, Category::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
