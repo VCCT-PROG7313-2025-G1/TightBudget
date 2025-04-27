@@ -13,8 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.adapters.TransactionAdapter
 import com.example.tightbudget.data.AppDatabase
-import com.example.tightbudget.data.Category
-import com.example.tightbudget.databinding.ActivityDashboardBinding
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.TransactionDetailBottomSheet
 import com.example.tightbudget.utils.ChartUtils
@@ -23,6 +21,7 @@ import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
 import kotlinx.coroutines.launch
 import java.util.Date
+import com.example.tightbudget.utils.CategoryConstants
 
 /**
  * Dashboard screen showing financial summary, goals, charts and quick access buttons.
@@ -174,14 +173,17 @@ class DashboardActivity : AppCompatActivity() {
         val root = findViewById<View>(R.id.dashboardMainCardsRoot)
 
         val categoryData = mapOf(
-            "Housing" to 650.0,
-            "Food" to 425.75,
-            "Transport" to 232.50,
-            "Entertainment" to 205.02
+            "Housing" to 650.0f,
+            "Food" to 425.75f,
+            "Transport" to 232.50f,
+            "Entertainment" to 205.02f
         )
 
         val chartContainer = root.findViewById<FrameLayout>(R.id.chartContainer)
-        ChartUtils.displayDonutChart(this, chartContainer, categoryData)
+        val donutChart = ChartUtils.createDonutChartView(this, categoryData)
+
+        chartContainer.removeAllViews()
+        chartContainer.addView(donutChart)
 
         // Populate spending legend
         populateSpendingLegend()
@@ -227,13 +229,13 @@ class DashboardActivity : AppCompatActivity() {
         legendContainer.removeAllViews()
 
         val categoryData = mapOf(
-            Category.HOUSING to 650.0f,
-            Category.FOOD to 425.75f,
-            Category.TRANSPORT to 232.50f,
-            Category.ENTERTAINMENT to 205.02f
+            CategoryConstants.HOUSING to 650.0f,
+            CategoryConstants.FOOD to 425.75f,
+            CategoryConstants.TRANSPORT to 232.50f,
+            CategoryConstants.ENTERTAINMENT to 205.02f
         )
 
-        for ((category, amount) in categoryData) {
+        for ((categoryName, amount) in categoryData) {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, 8, 0, 8)
@@ -248,14 +250,13 @@ class DashboardActivity : AppCompatActivity() {
                 val params = LinearLayout.LayoutParams(12.dp, 12.dp)
                 params.setMargins(0, 0, 6.dp, 0)
                 layoutParams = params
-                background = DrawableUtils.getCategoryCircle(this@DashboardActivity, category)
+                background = DrawableUtils.getCategoryCircle(this@DashboardActivity, categoryName)
             }
-
 
             val label = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                text = "${EmojiUtils.getCategoryEmoji(category)} ${
-                    category.name.lowercase().replaceFirstChar { it.uppercase() }
+                text = "${EmojiUtils.getCategoryEmoji(categoryName)} ${
+                    categoryName.lowercase().replaceFirstChar { it.uppercase() }
                 }"
                 setTextColor(getColor(R.color.text_medium))
                 textSize = 14f

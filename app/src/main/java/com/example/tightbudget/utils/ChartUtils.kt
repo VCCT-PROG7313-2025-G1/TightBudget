@@ -1,10 +1,12 @@
+// ChartUtils.kt
 package com.example.tightbudget.utils
 
 import android.content.Context
 import android.graphics.*
 import android.view.View
 import android.view.ViewGroup
-import com.example.tightbudget.data.Category
+import android.widget.FrameLayout
+import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import kotlin.math.min
 
@@ -16,14 +18,14 @@ object ChartUtils {
     /**
      * Create a simple donut chart view with category spending data
      */
-    fun createDonutChartView(context: Context, categoryAmounts: Map<Category, Float>): DonutChartView {
+    fun createDonutChartView(context: Context, categoryAmounts: Map<String, Float>): DonutChartView {
         return DonutChartView(context, categoryAmounts)
     }
 
     /**
      * Custom view for displaying a donut chart
      */
-    class DonutChartView(context: Context, private val data: Map<Category, Float>) : View(context) {
+    class DonutChartView(context: Context, private val data: Map<String, Float>) : View(context) {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val rect = RectF()
         private val centerText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -37,7 +39,6 @@ object ChartUtils {
         private var centerTextString = "R${String.format(Locale.getDefault(), "%.2f", total)}"
 
         init {
-            // Set default values
             if (total == 0f) total = 1f
         }
 
@@ -57,18 +58,17 @@ object ChartUtils {
             )
 
             var startAngle = 0f
-            data.forEach { (category, amount) ->
+            data.forEach { (categoryName, amount) ->
                 val sweepAngle = 360f * (amount / total)
 
                 paint.style = Paint.Style.STROKE
                 paint.strokeWidth = strokeWidth
-                paint.color = DrawableUtils.getCategoryColor(context, category)
+                paint.color = DrawableUtils.getCategoryColor(context, categoryName)
 
                 canvas.drawArc(rect, startAngle, sweepAngle, false, paint)
                 startAngle += sweepAngle
             }
 
-            // Draw center text
             canvas.drawText(
                 centerTextString,
                 width / 2,
@@ -81,46 +81,26 @@ object ChartUtils {
     /**
      * Creates a list of default category spending data for preview/placeholder
      */
-    fun getDefaultCategoryAmounts(context: Context): Map<Category, Float> {
+    fun getDefaultCategoryAmounts(): Map<String, Float> {
         return mapOf(
-            Category.HOUSING to 650.0f,
-            Category.FOOD to 425.75f,
-            Category.TRANSPORT to 232.50f,
-            Category.ENTERTAINMENT to 205.02f
+            CategoryConstants.HOUSING to 650.0f,
+            CategoryConstants.FOOD to 425.75f,
+            CategoryConstants.TRANSPORT to 232.50f,
+            CategoryConstants.ENTERTAINMENT to 205.02f
         )
     }
 
     /**
      * Helper function to create and add a donut chart to a container
      */
-    fun addDonutChartToContainer(context: Context, containerId: Int, activity: androidx.appcompat.app.AppCompatActivity) {
-        val container = activity.findViewById<android.widget.FrameLayout>(containerId)
-        container.removeAllViews() // Clear any existing views
+    fun addDonutChartToContainer(context: Context, containerId: Int, activity: AppCompatActivity) {
+        val container = activity.findViewById<FrameLayout>(containerId)
+        container.removeAllViews()
 
-        val categoryAmounts = getDefaultCategoryAmounts(context)
+        val categoryAmounts = getDefaultCategoryAmounts()
         val donutChart = createDonutChartView(context, categoryAmounts)
 
         container.addView(donutChart)
-    }
-
-    fun displayDonutChart(
-        context: Context,
-        container: ViewGroup,
-        categoryData: Map<String, Double>
-    ) {
-        // Convert string keys to valid Category enums
-        val convertedData = categoryData.mapNotNull { (name, amount) ->
-            val category = try {
-                Category.valueOf(name.uppercase()) // Ensure enum name matches
-            } catch (e: IllegalArgumentException) {
-                null
-            }
-            category?.let { it to amount.toFloat() }
-        }.toMap()
-
-        val chartView = DonutChartView(context, convertedData)
-        container.removeAllViews()
-        container.addView(chartView)
     }
 
     /**
@@ -140,23 +120,19 @@ object ChartUtils {
      * A custom view that draws a connected line chart from key-value data points.
      */
     class LineChartView(context: Context, private val data: Map<String, Float>) : View(context) {
-
-        // Paint for the connecting line
         private val linePaint = Paint().apply {
-            color = Color.parseColor("#66BB6A") // Teal green
+            color = Color.parseColor("#66BB6A")
             strokeWidth = 6f
             style = Paint.Style.STROKE
             isAntiAlias = true
         }
 
-        // Paint for each dot on the line
         private val pointPaint = Paint().apply {
             color = Color.parseColor("#66BB6A")
             style = Paint.Style.FILL
             isAntiAlias = true
         }
 
-        // Paint for X-axis labels
         private val textPaint = Paint().apply {
             color = Color.DKGRAY
             textSize = 24f
@@ -175,7 +151,6 @@ object ChartUtils {
             val entries = data.entries.toList()
             val maxY = (data.values.maxOrNull() ?: 1f).coerceAtLeast(1f)
 
-            // Draw lines and labels
             for (i in 0 until entries.size - 1) {
                 val x1 = padding + (i * chartWidth / (entries.size - 1))
                 val y1 = padding + chartHeight * (1 - (entries[i].value / maxY))
@@ -187,7 +162,6 @@ object ChartUtils {
                 canvas.drawText(entries[i].key, x1, height - 16f, textPaint)
             }
 
-            // Draw final data point and label
             val lastX = padding + ((entries.size - 1) * chartWidth / (entries.size - 1))
             val lastY = padding + chartHeight * (1 - (entries.last().value / maxY))
             canvas.drawCircle(lastX, lastY, 6f, pointPaint)
