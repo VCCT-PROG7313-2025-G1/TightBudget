@@ -9,7 +9,7 @@ import android.view.Gravity
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import com.example.tightbudget.R
-import com.example.tightbudget.data.Category
+import com.example.tightbudget.models.Category
 
 /**
  * Utility class for creating and customizing progress bars
@@ -30,8 +30,8 @@ object ProgressBarUtils {
     /**
      * Apply a category-colored progress bar style.
      */
-    fun applyCategoryProgressBar(progressBar: ProgressBar, context: Context, category: Category) {
-        val color = DrawableUtils.getCategoryColor(context, category)
+    fun applyCategoryProgressBar(progressBar: ProgressBar, context: Context, categoryName: String) {
+        val color = DrawableUtils.getCategoryColor(context, categoryName)
         applyColoredProgressBar(progressBar, context, color)
     }
 

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import com.example.tightbudget.R
 import com.example.tightbudget.databinding.FragmentTransactionDetailBinding
+import com.example.tightbudget.models.Category
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
@@ -72,8 +73,7 @@ class TransactionDetailBottomSheet : BottomSheetDialogFragment() {
         DrawableUtils.applyWhiteCircleBackground(binding.detailEmoji, requireContext())
 
         // Set the emoji based on category
-        val categoryEnum = com.example.tightbudget.data.Category.fromString(transaction.category)
-        binding.detailEmoji.text = EmojiUtils.getCategoryEmoji(categoryEnum)
+        binding.detailEmoji.text = EmojiUtils.getCategoryEmoji(transaction.category)
 
         // Fill in details
         binding.detailMerchant.text = transaction.merchant

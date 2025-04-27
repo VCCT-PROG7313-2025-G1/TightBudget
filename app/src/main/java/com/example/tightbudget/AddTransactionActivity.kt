@@ -12,7 +12,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
-import com.example.tightbudget.data.Category
 import com.example.tightbudget.databinding.ActivityAddTransactionBinding
 import com.example.tightbudget.models.CategoryItem
 import com.example.tightbudget.ui.CategoryPickerBottomSheet
@@ -21,6 +20,7 @@ import com.example.tightbudget.utils.EmojiUtils
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.tightbudget.utils.CategoryConstants
 
 class AddTransactionActivity : AppCompatActivity() {
     // Binds layout elements from activity_add_transaction.xml to this file
@@ -133,29 +133,28 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Initialises the category chips and assigns emojis using EmojiUtils
     private fun setupCategoryChips() {
-
         binding.foodChip.isChecked = true
 
-        binding.foodChip.text = EmojiUtils.getCategoryEmoji(Category.FOOD)
-        binding.transportChip.text = EmojiUtils.getCategoryEmoji(Category.TRANSPORT)
-        binding.entertainmentChip.text = EmojiUtils.getCategoryEmoji(Category.ENTERTAINMENT)
-        binding.housingChip.text = EmojiUtils.getCategoryEmoji(Category.HOUSING)
+        binding.foodChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.FOOD)
+        binding.transportChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.TRANSPORT)
+        binding.entertainmentChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT)
+        binding.housingChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING)
         binding.addCategoryChip.text = EmojiUtils.getActionEmoji("add")
 
         binding.foodChip.setOnClickListener {
-            selectedCategory = "Food"
+            selectedCategory = CategoryConstants.FOOD
             updateSelectedCategoryDisplay()
         }
         binding.transportChip.setOnClickListener {
-            selectedCategory = "Transport"
+            selectedCategory = CategoryConstants.TRANSPORT
             updateSelectedCategoryDisplay()
         }
         binding.entertainmentChip.setOnClickListener {
-            selectedCategory = "Entertainment"
+            selectedCategory = CategoryConstants.ENTERTAINMENT
             updateSelectedCategoryDisplay()
         }
         binding.housingChip.setOnClickListener {
-            selectedCategory = "Housing"
+            selectedCategory = CategoryConstants.HOUSING
             updateSelectedCategoryDisplay()
         }
 
@@ -165,11 +164,11 @@ class AddTransactionActivity : AppCompatActivity() {
     // Updates the text showing which category is currently selected
     private fun updateSelectedCategoryDisplay() {
         val emoji = when (selectedCategory) {
-            "Food" -> EmojiUtils.getCategoryEmoji(Category.FOOD)
-            "Transport" -> EmojiUtils.getCategoryEmoji(Category.TRANSPORT)
-            "Entertainment" -> EmojiUtils.getCategoryEmoji(Category.ENTERTAINMENT)
-            "Housing" -> EmojiUtils.getCategoryEmoji(Category.HOUSING)
-            else -> EmojiUtils.getCategoryEmoji(Category.OTHER)
+            CategoryConstants.FOOD -> EmojiUtils.getCategoryEmoji(CategoryConstants.FOOD)
+            CategoryConstants.TRANSPORT -> EmojiUtils.getCategoryEmoji(CategoryConstants.TRANSPORT)
+            CategoryConstants.ENTERTAINMENT -> EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT)
+            CategoryConstants.HOUSING -> EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING)
+            else -> EmojiUtils.getCategoryEmoji(CategoryConstants.OTHER)
         }
         binding.selectedCategoryDisplay.text = "$emoji $selectedCategory"
     }

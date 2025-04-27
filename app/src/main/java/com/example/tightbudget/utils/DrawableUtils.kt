@@ -1,14 +1,12 @@
 package com.example.tightbudget.utils
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.tightbudget.R
-import com.example.tightbudget.data.Category
 
 /**
  * Utility class for creating drawable shapes programmatically
@@ -122,25 +120,36 @@ object DrawableUtils {
     /**
      * Gets the color associated with a spending category
      */
-    fun getCategoryColor(context: Context, category: Category): Int {
-        return when (category) {
-            Category.HOUSING -> ContextCompat.getColor(context, R.color.teal_light)
-            Category.FOOD -> ContextCompat.getColor(context, R.color.primary_purple_light)
-            Category.TRANSPORT -> ContextCompat.getColor(context, R.color.blue_light)
-            Category.ENTERTAINMENT -> ContextCompat.getColor(context, R.color.orange)
-            Category.SHOPPING -> ContextCompat.getColor(context, R.color.yellow)
-            Category.UTILITIES -> ContextCompat.getColor(context, R.color.red_light)
-            Category.HEALTH -> ContextCompat.getColor(context, R.color.green_light)
-            Category.OTHER -> ContextCompat.getColor(context, R.color.gray_medium)
+    fun getCategoryColor(context: Context, categoryName: String): Int {
+        return when (categoryName) {
+            CategoryConstants.HOUSING -> ContextCompat.getColor(context, R.color.teal_light)
+            CategoryConstants.FOOD -> ContextCompat.getColor(context, R.color.primary_purple_light)
+            CategoryConstants.TRANSPORT -> ContextCompat.getColor(context, R.color.blue_light)
+            CategoryConstants.ENTERTAINMENT -> ContextCompat.getColor(context, R.color.orange)
+            "Shopping" -> ContextCompat.getColor(context, R.color.yellow)
+            "Utilities" -> ContextCompat.getColor(context, R.color.red_light)
+            "Health" -> ContextCompat.getColor(context, R.color.green_light)
+            else -> ContextCompat.getColor(context, R.color.gray_medium)
         }
     }
 
     /**
      * Creates a circle indicator for a specific category
      */
-    fun getCategoryCircle(context: Context, category: Category): Drawable {
-        val color = getCategoryColor(context, category)
-        return createCircle(color)
+    fun getCategoryCircle(context: Context, categoryName: String): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.OVAL
+
+        val colorHex = when (categoryName) {
+            CategoryConstants.FOOD -> "#4CAF50" // Green
+            CategoryConstants.TRANSPORT -> "#FF9800" // Orange
+            CategoryConstants.ENTERTAINMENT -> "#9C27B0" // Purple
+            CategoryConstants.HOUSING -> "#2196F3" // Blue
+            else -> "#9E9E9E" // Grey
+        }
+
+        drawable.setColor(android.graphics.Color.parseColor(colorHex))
+        return drawable
     }
 
     /**
