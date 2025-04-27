@@ -8,4 +8,6 @@ object CategoryConstants {
     const val ENTERTAINMENT = "Entertainment"
     const val HOUSING = "Housing"
     const val OTHER = "Other"
+
+    const val MINIMUM_BUDGET_AMOUNT = 10.0
 }

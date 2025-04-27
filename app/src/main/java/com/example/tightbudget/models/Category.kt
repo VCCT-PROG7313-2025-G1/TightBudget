@@ -9,5 +9,6 @@ data class Category(
     val id: Int = 0,
     val name: String,
     val emoji: String,
-    val color : String
+    val color : String,
+    val budget: Double
 )
