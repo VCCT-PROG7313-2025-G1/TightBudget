@@ -1,17 +1,19 @@
 package com.example.tightbudget.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tightbudget.adapters.CategoryAdapter
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.FragmentCategoryPickerBinding
 import com.example.tightbudget.models.CategoryItem
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
 
-/**
- * A bottom sheet to let the user choose a category or create a new one.
- */
 class CategoryPickerBottomSheet(
     private val categoryList: List<CategoryItem>,
     private val onCategorySelected: (CategoryItem) -> Unit,
@@ -35,24 +37,23 @@ class CategoryPickerBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Log the categories received in constructor
+        Log.d("CategoryPicker", "Categories: $categoryList")
+
+        // Use the categoryList passed in constructor instead of fetching again
         adapter = CategoryAdapter(categoryList) { selectedCategory ->
             onCategorySelected(selectedCategory)
             dismiss()
         }
 
+        binding.categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.categoryRecyclerView.adapter = adapter
 
-        // Close modal
-        binding.closeButton.setOnClickListener {
-            dismiss()
-        }
-
-        // "Create New Category" clicked
+        binding.closeButton.setOnClickListener { dismiss() }
         binding.createNewCategoryButton.setOnClickListener {
             onCreateNewClicked()
             dismiss()
         }
-        // TODO: Add search filtering if desired
     }
 
     override fun onDestroyView() {

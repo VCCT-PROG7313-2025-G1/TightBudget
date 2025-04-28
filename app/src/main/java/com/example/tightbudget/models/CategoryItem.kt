@@ -3,6 +3,6 @@ package com.example.tightbudget.models
 data class CategoryItem(
     val name: String,
     val emoji: String,
-    val colorHex: String,
+    val color: String,
     val budget: Double
 )

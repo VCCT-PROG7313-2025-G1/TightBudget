@@ -1,6 +1,7 @@
 package com.example.tightbudget.adapters
 
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,16 +11,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.R
 import com.example.tightbudget.models.CategoryItem
 
+/**
+ * Adapter to display a grid of category items in the category picker bottom sheet.
+ */
 class CategoryAdapter(
-    private val items: List<CategoryItem>,
-    private val onClick: (CategoryItem) -> Unit
+    private var categories: List<CategoryItem>,
+    private val onCategorySelected: (CategoryItem) -> Unit
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
-
-    inner class CategoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val emojiText: TextView = view.findViewById(R.id.categoryEmoji)
-        val nameText: TextView = view.findViewById(R.id.categoryName)
-        val colorCircle: CardView = view.findViewById(R.id.categoryColorCircle)
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -27,16 +25,58 @@ class CategoryAdapter(
         return CategoryViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        val category = items[position]
-        holder.emojiText.text = category.emoji
-        holder.nameText.text = category.name
-        holder.colorCircle.setCardBackgroundColor(Color.parseColor(category.colorHex))
+    override fun getItemCount(): Int = categories.size
 
-        holder.itemView.setOnClickListener {
-            onClick(category)
-        }
+    override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
+        val category = categories[position]
+        holder.bind(category)
     }
 
-    override fun getItemCount(): Int = items.size
+    fun updateCategories(newCategories: List<CategoryItem>) {
+        this.categories = newCategories
+        notifyDataSetChanged()
+    }
+
+    inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val card: CardView = itemView.findViewById(R.id.categoryCard)
+        private val emoji: TextView = itemView.findViewById(R.id.categoryEmoji)
+        private val name: TextView = itemView.findViewById(R.id.categoryName)
+        private val budget: TextView = itemView.findViewById(R.id.categoryBudget)
+
+        fun bind(category: CategoryItem) {
+            emoji.text = category.emoji
+            name.text = category.name
+            budget.text = "R${"%,.2f".format(category.budget)}"
+
+            try {
+                // Make sure color starts with #
+                val colorStr = if (category.color.startsWith("#")) category.color else "#${category.color}"
+                val backgroundColor = Color.parseColor(colorStr)
+                card.setCardBackgroundColor(backgroundColor)
+
+                // Set text color based on background brightness
+                val isColorDark = isDarkColor(backgroundColor)
+                val textColor = if (isColorDark) Color.WHITE else Color.BLACK
+
+                // Apply the text color to both name and budget
+                name.setTextColor(textColor)
+                budget.setTextColor(if (isColorDark) Color.parseColor("#DDDDDD") else Color.parseColor("#666666"))
+            } catch (e: IllegalArgumentException) {
+                Log.e("CategoryAdapter", "Error parsing color: ${category.color}", e)
+                card.setCardBackgroundColor(Color.LTGRAY)
+                name.setTextColor(Color.BLACK)
+                budget.setTextColor(Color.DKGRAY)
+            }
+
+            itemView.setOnClickListener {
+                onCategorySelected(category)
+            }
+        }
+
+        // This function determines if a color is dark or light based on its RGB values.
+        private fun isDarkColor(color: Int): Boolean {
+            val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255
+            return darkness >= 0.5
+        }
+    }
 }

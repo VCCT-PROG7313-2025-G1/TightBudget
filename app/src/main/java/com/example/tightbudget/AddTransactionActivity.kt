@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.ActivityAddTransactionBinding
 import com.example.tightbudget.models.CategoryItem
 import com.example.tightbudget.ui.CategoryPickerBottomSheet
@@ -21,6 +23,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.tightbudget.utils.CategoryConstants
+import kotlinx.coroutines.launch
 
 class AddTransactionActivity : AppCompatActivity() {
     // Binds layout elements from activity_add_transaction.xml to this file
@@ -28,7 +31,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private val TAG = "AddTransactionActivity"
 
     // Variables to track the current state
-    private var selectedCategory = "Food"
+    private var selectedCategory: CategoryItem? = null
     private var isExpense = true
     private var isRecurring = false
     private var selectedDate = Calendar.getInstance()
@@ -141,20 +144,41 @@ class AddTransactionActivity : AppCompatActivity() {
         binding.housingChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING)
         binding.addCategoryChip.text = EmojiUtils.getActionEmoji("add")
 
+        // Chip click listeners
         binding.foodChip.setOnClickListener {
-            selectedCategory = CategoryConstants.FOOD
+            selectedCategory = CategoryItem(
+                name = CategoryConstants.FOOD,
+                emoji = EmojiUtils.getCategoryEmoji(CategoryConstants.FOOD),
+                color = "#FF9800",
+                budget = 0.0 // Set 0.0 because this is a quick-pick
+            )
             updateSelectedCategoryDisplay()
         }
         binding.transportChip.setOnClickListener {
-            selectedCategory = CategoryConstants.TRANSPORT
+            selectedCategory = CategoryItem(
+                name = CategoryConstants.TRANSPORT,
+                emoji = EmojiUtils.getCategoryEmoji(CategoryConstants.TRANSPORT),
+                color = "#2196F3",
+                budget = 0.0
+            )
             updateSelectedCategoryDisplay()
         }
         binding.entertainmentChip.setOnClickListener {
-            selectedCategory = CategoryConstants.ENTERTAINMENT
+            selectedCategory = CategoryItem(
+                name = CategoryConstants.ENTERTAINMENT,
+                emoji = EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT),
+                color = "#9C27B0",
+                budget = 0.0
+            )
             updateSelectedCategoryDisplay()
         }
         binding.housingChip.setOnClickListener {
-            selectedCategory = CategoryConstants.HOUSING
+            selectedCategory = CategoryItem(
+                name = CategoryConstants.HOUSING,
+                emoji = EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING),
+                color = "#4CAF50",
+                budget = 0.0
+            )
             updateSelectedCategoryDisplay()
         }
 
@@ -163,14 +187,9 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Updates the text showing which category is currently selected
     private fun updateSelectedCategoryDisplay() {
-        val emoji = when (selectedCategory) {
-            CategoryConstants.FOOD -> EmojiUtils.getCategoryEmoji(CategoryConstants.FOOD)
-            CategoryConstants.TRANSPORT -> EmojiUtils.getCategoryEmoji(CategoryConstants.TRANSPORT)
-            CategoryConstants.ENTERTAINMENT -> EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT)
-            CategoryConstants.HOUSING -> EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING)
-            else -> EmojiUtils.getCategoryEmoji(CategoryConstants.OTHER)
+        selectedCategory?.let { category ->
+            binding.selectedCategoryDisplay.text = "${category.emoji} ${category.name}"
         }
-        binding.selectedCategoryDisplay.text = "$emoji $selectedCategory"
     }
 
     // Allows the user to pick a transaction date (limited to the next 30 days)
@@ -343,27 +362,47 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Opens a modal to create a new category
     private fun showCategoryPicker() {
-        val sampleCategories = listOf(
-            CategoryItem("Food", "🍔", "#FFA726", 400.0),
-            CategoryItem("Transport", "🚗", "#66BB6A", 250.0),
-            CategoryItem("Entertainment", "🎬", "#29B6F6", 200.0),
-            CategoryItem("Housing", "🏠", "#AB47BC", 800.0),
-            CategoryItem("Groceries", "🛒", "#FF7043", 300.0),
-            CategoryItem("Salary", "💼", "#42A5F5", 12000.0)
-        )
+        val db = AppDatabase.getDatabase(this)
+        val categoryDao = db.categoryDao()
 
-        val picker = CategoryPickerBottomSheet(
-            categoryList = sampleCategories,
-            onCategorySelected = { category ->
-                selectedCategory = category.name
-                updateSelectedCategoryDisplay(category)
-            },
-            onCreateNewClicked = {
-                Log.d(TAG, "Create New Category clicked")  // Debugging
-                showCreateCategoryModal()
+        lifecycleScope.launch {
+            try {
+                val categories = categoryDao.getAllCategories()
+
+                // Log for debugging
+                Log.d("showCategoryPicker", "Fetched ${categories.size} categories from database.")
+                categories.forEach { category ->
+                    Log.d("showCategoryPicker", "Category: ${category.name}, Emoji: ${category.emoji}, Budget: ${category.budget}")
+                }
+
+                val categoryItems = categories.map { category ->
+                    CategoryItem(
+                        name = category.name,
+                        emoji = category.emoji,
+                        color = category.color,
+                        budget = category.budget
+                    )
+                }
+
+                val picker = CategoryPickerBottomSheet(
+                    categoryList = categoryItems,
+                    onCategorySelected = { selectedCategoryItem ->
+                        selectedCategory = selectedCategoryItem
+                        updateSelectedCategoryDisplay()
+                    },
+                    onCreateNewClicked = {
+                        showCreateCategoryModal()
+                    }
+                )
+
+                if (!isFinishing) {
+                    picker.show(supportFragmentManager, "CategoryPicker")
+                }
+            } catch (e: Exception) {
+                Log.e("showCategoryPicker", "Error showing category picker", e)
+                Toast.makeText(this@AddTransactionActivity, "Error loading categories", Toast.LENGTH_SHORT).show()
             }
-        )
-        picker.show(supportFragmentManager, "CategoryPicker")
+        }
     }
 
     private fun showCreateCategoryModal() {
