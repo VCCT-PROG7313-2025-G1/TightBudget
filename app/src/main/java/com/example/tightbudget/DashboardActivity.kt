@@ -1,5 +1,6 @@
 package com.example.tightbudget
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -53,7 +54,8 @@ class DashboardActivity : AppCompatActivity() {
                     balanceAmountView.text = "R%.2f".format(user.balance)
                 } else {
                     Log.e("DashboardActivity", "User not found in database for email: $userEmail")
-                    Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -283,17 +285,92 @@ class DashboardActivity : AppCompatActivity() {
         val root = findViewById<View>(R.id.dashboardMainCardsRoot)
         val recyclerView = root.findViewById<RecyclerView>(R.id.recentTransactionsRecyclerView)
 
-        val dummyTransactions = listOf(
-            Transaction(1, "Checkers", "Food", 98.00, Date(), true),
-            Transaction(2, "Uber", "Transport", 45.50, Date(), true),
-            Transaction(3, "Salary", "Income", 2500.00, Date(), false)
-        )
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = TransactionAdapter(dummyTransactions) { clickedTransaction ->
+        // Set up RecyclerView with empty adapter initially
+        val transactionAdapter = TransactionAdapter(emptyList()) { clickedTransaction ->
             TransactionDetailBottomSheet.newInstance(clickedTransaction)
                 .show(supportFragmentManager, "TransactionDetail")
         }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = transactionAdapter
+
+        // Load actual transactions from the database
+        loadTransactionsForCurrentUser(transactionAdapter)
+    }
+
+    private fun loadTransactionsForCurrentUser(adapter: TransactionAdapter) {
+        val userId = getCurrentUserId()
+        if (userId == -1) {
+            // User not logged in, show placeholder data or message
+            val dummyTransactions = listOf(
+                Transaction(
+                    id = 1,
+                    userId = -1, // Dummy user ID for unregistered users
+                    merchant = "Checkers",
+                    category = "Food",
+                    amount = 98.00,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 2,
+                    userId = -1,
+                    merchant = "Uber",
+                    category = "Transport",
+                    amount = 45.50,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 3,
+                    userId = -1,
+                    merchant = "Salary",
+                    category = "Income",
+                    amount = 2500.00,
+                    date = Date(),
+                    isExpense = false
+                )
+            )
+            adapter.updateList(dummyTransactions)
+            return
+        }
+
+        val db = AppDatabase.getDatabase(this)
+        val transactionDao = db.transactionDao()
+
+        lifecycleScope.launch {
+            try {
+                // Get transactions for the current user
+                val transactions = transactionDao.getAllTransactionsForUser(userId)
+
+                // Update the UI on the main thread
+                runOnUiThread {
+                    if (transactions.isEmpty()) {
+                        // Handle empty state - maybe show a message
+                        Log.d("DashboardActivity", "No transactions found for user $userId")
+                    } else {
+                        // Update adapter with real data
+                        Log.d("DashboardActivity", "Loaded ${transactions.size} transactions")
+                        adapter.updateList(transactions)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error loading transactions", e)
+                // Show error state or fallback to dummy data
+                runOnUiThread {
+                    Toast.makeText(
+                        this@DashboardActivity,
+                        "Error loading transactions: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun getCurrentUserId(): Int {
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getInt("current_user_id", -1)
     }
 
 
