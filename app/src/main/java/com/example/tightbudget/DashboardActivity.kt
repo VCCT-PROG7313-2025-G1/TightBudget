@@ -1,5 +1,6 @@
 package com.example.tightbudget
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +28,7 @@ import com.example.tightbudget.utils.CategoryConstants
  * Dashboard screen showing financial summary, goals, charts and quick access buttons.
  */
 class DashboardActivity : AppCompatActivity() {
+    private val TAG = "DashboardActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,27 +38,12 @@ class DashboardActivity : AppCompatActivity() {
         val welcomeTextView = findViewById<TextView>(R.id.welcomeText)
         val balanceAmountView = findViewById<TextView>(R.id.balanceAmount)
 
-        // Initialise the database
+        // Initialize the database
         val db = AppDatabase.getDatabase(this)
         val userDao = db.userDao()
 
-        // Get the email from the intent
-        val userEmail = intent.getStringExtra("USER_EMAIL")
-
-        if (!userEmail.isNullOrEmpty()) {
-            lifecycleScope.launch {
-                val user = userDao.getUserByEmail(userEmail)
-
-                if (user != null) {
-                    // Set welcome message and balance
-                    welcomeTextView.text = "Welcome back, ${user.fullName}!"
-                    balanceAmountView.text = "R%.2f".format(user.balance)
-                } else {
-                    Log.e("DashboardActivity", "User not found in database for email: $userEmail")
-                    Toast.makeText(this@DashboardActivity, "User not found", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        // Load user information
+        loadUserInformation(welcomeTextView, balanceAmountView, userDao)
 
         // Open ProfileActivity when the user taps the profile icon
         findViewById<FrameLayout>(R.id.profileButton).setOnClickListener {
@@ -70,6 +57,87 @@ class DashboardActivity : AppCompatActivity() {
         setupSpendingChart()
         setupAchievementBadges()
         setupRecentTransactions()
+    }
+
+    /**
+     * Load user information with proper fallback strategy
+     */
+    private fun loadUserInformation(
+        welcomeTextView: TextView,
+        balanceAmountView: TextView,
+        userDao: com.example.tightbudget.data.UserDao
+    ) {
+        lifecycleScope.launch {
+            try {
+                val userId = getCurrentUserId()
+                Log.d(TAG, "Loading user info for userId: $userId")
+
+                if (userId != -1) {
+                    // User is logged in via ID from SharedPreferences
+                    val user = userDao.getUserById(userId)
+
+                    if (user != null) {
+                        // Set welcome message and balance
+                        welcomeTextView.text = "Welcome back, ${user.fullName}!"
+                        balanceAmountView.text = "R%.2f".format(user.balance)
+                        Log.d(TAG, "Loaded user from SharedPreferences ID: ${user.fullName}")
+                    } else {
+                        // If user not found by ID, try the email from intent
+                        val userEmail = intent.getStringExtra("USER_EMAIL")
+                        if (!userEmail.isNullOrEmpty()) {
+                            val userByEmail = userDao.getUserByEmail(userEmail)
+                            if (userByEmail != null) {
+                                welcomeTextView.text = "Welcome back, ${userByEmail.fullName}!"
+                                balanceAmountView.text = "R%.2f".format(userByEmail.balance)
+                                // Save the user ID since we found them by email
+                                saveUserSession(userByEmail.id)
+                                Log.d(TAG, "Loaded user from email and saved ID: ${userByEmail.id}")
+                            }
+                        } else {
+                            showDefaultUserInfo(welcomeTextView, balanceAmountView)
+                        }
+                    }
+                } else {
+                    // If no user ID in preferences, try the email from intent
+                    val userEmail = intent.getStringExtra("USER_EMAIL")
+                    if (!userEmail.isNullOrEmpty()) {
+                        val userByEmail = userDao.getUserByEmail(userEmail)
+                        if (userByEmail != null) {
+                            welcomeTextView.text = "Welcome back, ${userByEmail.fullName}!"
+                            balanceAmountView.text = "R%.2f".format(userByEmail.balance)
+                            // Save the user ID since we found them by email
+                            saveUserSession(userByEmail.id)
+                            Log.d(TAG, "Loaded user from email and saved ID: ${userByEmail.id}")
+                        } else {
+                            showDefaultUserInfo(welcomeTextView, balanceAmountView)
+                        }
+                    } else {
+                        showDefaultUserInfo(welcomeTextView, balanceAmountView)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading user information", e)
+                showDefaultUserInfo(welcomeTextView, balanceAmountView)
+            }
+        }
+    }
+
+    private fun showDefaultUserInfo(welcomeTextView: TextView, balanceAmountView: TextView) {
+        welcomeTextView.text = "Welcome, Guest!"
+        balanceAmountView.text = "R0.00"
+    }
+
+    private fun saveUserSession(userId: Int) {
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putInt("current_user_id", userId).apply()
+        Log.d(TAG, "Saved user session with ID: $userId")
+    }
+
+    private fun getCurrentUserId(): Int {
+        val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("current_user_id", -1)
+        Log.d(TAG, "Retrieved userId from SharedPreferences: $userId")
+        return userId
     }
 
     /**
@@ -283,19 +351,88 @@ class DashboardActivity : AppCompatActivity() {
         val root = findViewById<View>(R.id.dashboardMainCardsRoot)
         val recyclerView = root.findViewById<RecyclerView>(R.id.recentTransactionsRecyclerView)
 
-        val dummyTransactions = listOf(
-            Transaction(1, "Checkers", "Food", 98.00, Date(), true),
-            Transaction(2, "Uber", "Transport", 45.50, Date(), true),
-            Transaction(3, "Salary", "Income", 2500.00, Date(), false)
-        )
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = TransactionAdapter(dummyTransactions) { clickedTransaction ->
+        // Set up RecyclerView with empty adapter initially
+        val transactionAdapter = TransactionAdapter(emptyList()) { clickedTransaction ->
             TransactionDetailBottomSheet.newInstance(clickedTransaction)
                 .show(supportFragmentManager, "TransactionDetail")
         }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = transactionAdapter
+
+        // Load actual transactions from the database
+        loadTransactionsForCurrentUser(transactionAdapter)
     }
 
+    private fun loadTransactionsForCurrentUser(adapter: TransactionAdapter) {
+        val userId = getCurrentUserId()
+        if (userId == -1) {
+            // User not logged in, show placeholder data or message
+            val dummyTransactions = listOf(
+                Transaction(
+                    id = 1,
+                    userId = -1, // Dummy user ID for unregistered users
+                    merchant = "Checkers",
+                    category = "Food",
+                    amount = 98.00,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 2,
+                    userId = -1,
+                    merchant = "Uber",
+                    category = "Transport",
+                    amount = 45.50,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 3,
+                    userId = -1,
+                    merchant = "Salary",
+                    category = "Income",
+                    amount = 2500.00,
+                    date = Date(),
+                    isExpense = false
+                )
+            )
+            adapter.updateList(dummyTransactions)
+            return
+        }
+
+        val db = AppDatabase.getDatabase(this)
+        val transactionDao = db.transactionDao()
+
+        lifecycleScope.launch {
+            try {
+                // Get transactions for the current user
+                val transactions = transactionDao.getAllTransactionsForUser(userId)
+
+                // Update the UI on the main thread
+                runOnUiThread {
+                    if (transactions.isEmpty()) {
+                        // Handle empty state - maybe show a message
+                        Log.d(TAG, "No transactions found for user $userId")
+                    } else {
+                        // Update adapter with real data
+                        Log.d(TAG, "Loaded ${transactions.size} transactions for user $userId")
+                        adapter.updateList(transactions)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading transactions", e)
+                // Show error state or fallback to dummy data
+                runOnUiThread {
+                    Toast.makeText(
+                        this@DashboardActivity,
+                        "Error loading transactions: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()

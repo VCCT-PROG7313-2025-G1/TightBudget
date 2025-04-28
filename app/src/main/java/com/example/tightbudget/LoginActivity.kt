@@ -1,5 +1,6 @@
 package com.example.tightbudget
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.ActivityLoginBinding
 import kotlinx.coroutines.launch
+import kotlin.apply
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -126,15 +128,27 @@ class LoginActivity : AppCompatActivity() {
                 }
             } else {
                 // Successful login
-                runOnUiThread {
-                    Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+                saveUserSession(user.id)
 
-                    val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
-                    intent.putExtra("USER_EMAIL", email) // Pass the email to the next activity
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
+                Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+
+                val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                intent.putExtra("USER_EMAIL", email)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
                 }
             }
         }
+
+    // This method is called to save the user session
+    private fun saveUserSession(userId: Int) {
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().apply {
+            putInt("current_user_id", userId)
+            putBoolean("is_logged_in", true)
+            apply()
+        }
+        Log.d(TAG, "Saved user session with ID: $userId")
     }
 }
+

@@ -53,10 +53,42 @@ class TransactionsActivity : AppCompatActivity() {
      */
     private fun generateMockTransactions(): List<Transaction> {
         return listOf(
-            Transaction(1, "Checkers", "Food", 86.45, Date(), true),
-            Transaction(2, "Engen Garage", "Transport", 342.50, Date(), true),
-            Transaction(3, "Nando's", "Entertainment", 178.75, Date(), true),
-            Transaction(4, "Salary Deposit", "Income", 12450.00, Date(), false)
+            Transaction(
+                id = 1,
+                userId = -1, // Dummy user ID for testing
+                merchant = "Checkers",
+                category = "Food",
+                amount = 86.45,
+                date = Date(),
+                isExpense = true
+            ),
+            Transaction(
+                id = 2,
+                userId = -1,
+                merchant = "Engen Garage",
+                category = "Transport",
+                amount = 342.50,
+                date = Date(),
+                isExpense = true
+            ),
+            Transaction(
+                id = 3,
+                userId = -1,
+                merchant = "Nando's",
+                category = "Entertainment",
+                amount = 178.75,
+                date = Date(),
+                isExpense = true
+            ),
+            Transaction(
+                id = 4,
+                userId = -1,
+                merchant = "Salary Deposit",
+                category = "Income",
+                amount = 12450.00,
+                date = Date(),
+                isExpense = false
+            )
         )
     }
 }

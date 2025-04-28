@@ -1,6 +1,7 @@
 package com.example.tightbudget
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -16,10 +17,12 @@ import androidx.lifecycle.lifecycleScope
 import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.ActivityAddTransactionBinding
 import com.example.tightbudget.models.CategoryItem
+import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.CategoryPickerBottomSheet
 import com.example.tightbudget.ui.CreateCategoryBottomSheet
 import com.example.tightbudget.utils.EmojiUtils
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.tightbudget.utils.CategoryConstants
@@ -334,30 +337,111 @@ class AddTransactionActivity : AppCompatActivity() {
             return false
         }
 
+        // Check if user is logged in
+        if (getCurrentUserId() == -1) {
+            Toast.makeText(this, "Please log in to save transactions", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
         return true
+    }
+
+    // Get current user ID from SharedPreferences
+    private fun getCurrentUserId(): Int {
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getInt("current_user_id", -1)
+    }
+
+    // Saves the receipt image to permanent storage and returns the path
+    private fun saveReceiptImage(): String? {
+        if (receiptImageUri == null) return null
+
+        try {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val storageDir = getExternalFilesDir("receipt_images")
+
+            if (!storageDir?.exists()!!) {
+                storageDir.mkdirs()
+            }
+
+            val destinationFile = File(storageDir, "RECEIPT_${timeStamp}.jpg")
+
+            // Copy the temporary file to permanent storage
+            contentResolver.openInputStream(receiptImageUri!!)?.use { input ->
+                FileOutputStream(destinationFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            Log.d(TAG, "Receipt image saved permanently at: ${destinationFile.absolutePath}")
+            return destinationFile.absolutePath
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save receipt image permanently", e)
+            return null
+        }
     }
 
     // Saves the transaction details and returns to the Dashboard
     private fun saveTransaction() {
-        val amount = binding.amountInput.text.toString()
-        val merchant = binding.merchantInput.text.toString()
-        val description = binding.descriptionInput.text.toString()
+        try {
+            val amountText = binding.amountInput.text.toString()
+            val amount = amountText.toDoubleOrNull() ?: 0.0
 
-        Log.d(
-            TAG,
-            "Saving transaction: $amount, $selectedCategory, ${if (isExpense) "Expense" else "Income"}"
-        )
-        Log.d(TAG, "Merchant/Source: $merchant")
-        Log.d(TAG, "Description: $description")
-        Log.d(
-            TAG,
-            "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)}"
-        )
-        Log.d(TAG, "Recurring: $isRecurring")
+            val merchant = binding.merchantInput.text.toString()
+            val description = binding.descriptionInput.text.toString()
+            val category = selectedCategory?.name ?: "Uncategorized"
 
-        Toast.makeText(this, "Transaction saved successfully!", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this, DashboardActivity::class.java))
-        finish()
+            // Save the receipt image permanently
+            val receiptPath = saveReceiptImage()
+
+            // Get the current user ID
+            val userId = getCurrentUserId()
+
+            val db = AppDatabase.getDatabase(this)
+            val transactionDao = db.transactionDao()
+
+            lifecycleScope.launch {
+                try {
+                    val transaction = Transaction(
+                        userId = userId,
+                        merchant = merchant,
+                        category = category,
+                        amount = amount,
+                        date = selectedDate.time,
+                        isExpense = isExpense,
+                        description = description.takeIf { it.isNotEmpty() },
+                        receiptPath = receiptPath,
+                        isRecurring = isRecurring
+                    )
+
+                    val transactionId = transactionDao.insertTransaction(transaction)
+
+                    Log.d(TAG, "Transaction saved with ID: $transactionId")
+                    Log.d(TAG, "Merchant/Source: $merchant")
+                    Log.d(TAG, "Description: $description")
+                    Log.d(TAG, "Category: $category")
+                    Log.d(TAG, "Amount: $amount, ${if (isExpense) "Expense" else "Income"}")
+                    Log.d(TAG, "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)}")
+                    Log.d(TAG, "Recurring: $isRecurring")
+
+                    Toast.makeText(this@AddTransactionActivity, "Transaction saved successfully!", Toast.LENGTH_SHORT).show()
+
+                    // Return to Dashboard
+                    startActivity(Intent(this@AddTransactionActivity, DashboardActivity::class.java))
+                    finish()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error saving transaction", e)
+                    Toast.makeText(
+                        this@AddTransactionActivity,
+                        "Error saving transaction: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in saveTransaction", e)
+            Toast.makeText(this, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // Opens a modal to create a new category
@@ -410,10 +494,6 @@ class AddTransactionActivity : AppCompatActivity() {
 
         val createSheet = CreateCategoryBottomSheet()
         createSheet.show(supportFragmentManager, "CreateCategory")
-    }
-
-    private fun updateSelectedCategoryDisplay(category: CategoryItem) {
-        binding.selectedCategoryDisplay.text = "${category.emoji} ${category.name}"
     }
 
     // Handles the back button click
