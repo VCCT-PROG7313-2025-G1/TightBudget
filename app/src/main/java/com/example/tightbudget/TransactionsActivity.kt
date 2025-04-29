@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupMenu
-import android.widget.SearchView
+import androidx.appcompat.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +25,9 @@ import com.example.tightbudget.utils.CategoryConstants
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 
 /**
  * Activity that displays a scrollable list of all transactions (expenses and income).
@@ -99,6 +102,7 @@ class TransactionsActivity : AppCompatActivity() {
                 .setNegativeButton("Cancel", null)
                 .create()
 
+            // Set up search functionality
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     filterTransactionsBySearch(query)
@@ -111,7 +115,25 @@ class TransactionsActivity : AppCompatActivity() {
                 }
             })
 
+            // Show the dialog
             dialog.show()
+
+            // Make sure SearchView has focus and show keyboard
+            searchView.requestFocus()
+
+            // This will show the keyboard
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+
+            // Make sure EditText in SearchView has focus
+            val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+            searchEditText?.let {
+                it.requestFocus()
+                it.isFocusableInTouchMode = true
+            }
+
+            // Set dialog window properties to ensure it's correctly sized
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         }
     }
 
