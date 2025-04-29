@@ -3,7 +3,10 @@ package com.example.tightbudget
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -11,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -143,7 +147,8 @@ class AddTransactionActivity : AppCompatActivity() {
 
         binding.foodChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.FOOD)
         binding.transportChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.TRANSPORT)
-        binding.entertainmentChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT)
+        binding.entertainmentChip.text =
+            EmojiUtils.getCategoryEmoji(CategoryConstants.ENTERTAINMENT)
         binding.housingChip.text = EmojiUtils.getCategoryEmoji(CategoryConstants.HOUSING)
         binding.addCategoryChip.text = EmojiUtils.getActionEmoji("add")
 
@@ -273,7 +278,12 @@ class AddTransactionActivity : AppCompatActivity() {
 
     // Opens a dialog allowing the user to select a photo source
     private fun showImageSourceDialog() {
-        val options = arrayOf("Take Photo", "Choose from Gallery")
+        // Add sample image option (for emulator testing)
+        val options = if (isRunningOnEmulator()) {
+            arrayOf("Take Photo", "Choose from Gallery", "Use Sample Image")
+        } else {
+            arrayOf("Take Photo", "Choose from Gallery")
+        }
 
         android.app.AlertDialog.Builder(this)
             .setTitle("Add Receipt Photo")
@@ -312,6 +322,46 @@ class AddTransactionActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error creating image file: ${e.message}")
             null
+        }
+    }
+
+    // Checks if the app is running on an emulator or a real device
+    private fun isRunningOnEmulator(): Boolean {
+        return (Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion"))
+    }
+
+    // Uses a sample image from resources (for emulator testing)
+    private fun useSampleImage() {
+        try {
+            // Use a sample image from resources
+            val drawable = ContextCompat.getDrawable(this, R.drawable.sample_receipt)
+            binding.receiptImageView.setImageDrawable(drawable)
+            binding.receiptImageView.visibility = View.VISIBLE
+            binding.addPhotoButton.visibility = View.GONE
+
+            // Create a file to store the sample image
+            val storageDir = getExternalFilesDir("receipt_images")
+            if (!storageDir?.exists()!!) {
+                storageDir.mkdirs()
+            }
+
+            val imageFile = File(storageDir, "sample_receipt_${System.currentTimeMillis()}.jpg")
+
+            // Save the drawable to a file
+            val bitmap = (drawable as BitmapDrawable).bitmap
+            FileOutputStream(imageFile).use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+            }
+
+            receiptImageUri = Uri.fromFile(imageFile)
+            Log.d(TAG, "Sample receipt loaded: ${imageFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error using sample image: ${e.message}", e)
         }
     }
 
@@ -421,13 +471,30 @@ class AddTransactionActivity : AppCompatActivity() {
                     Log.d(TAG, "Description: $description")
                     Log.d(TAG, "Category: $category")
                     Log.d(TAG, "Amount: $amount, ${if (isExpense) "Expense" else "Income"}")
-                    Log.d(TAG, "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)}")
+                    Log.d(
+                        TAG,
+                        "Date: ${
+                            SimpleDateFormat(
+                                "yyyy-MM-dd",
+                                Locale.getDefault()
+                            ).format(selectedDate.time)
+                        }"
+                    )
                     Log.d(TAG, "Recurring: $isRecurring")
 
-                    Toast.makeText(this@AddTransactionActivity, "Transaction saved successfully!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@AddTransactionActivity,
+                        "Transaction saved successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
                     // Return to Dashboard
-                    startActivity(Intent(this@AddTransactionActivity, DashboardActivity::class.java))
+                    startActivity(
+                        Intent(
+                            this@AddTransactionActivity,
+                            DashboardActivity::class.java
+                        )
+                    )
                     finish()
                 } catch (e: Exception) {
                     Log.e(TAG, "Error saving transaction", e)
@@ -456,7 +523,10 @@ class AddTransactionActivity : AppCompatActivity() {
                 // Log for debugging
                 Log.d("showCategoryPicker", "Fetched ${categories.size} categories from database.")
                 categories.forEach { category ->
-                    Log.d("showCategoryPicker", "Category: ${category.name}, Emoji: ${category.emoji}, Budget: ${category.budget}")
+                    Log.d(
+                        "showCategoryPicker",
+                        "Category: ${category.name}, Emoji: ${category.emoji}, Budget: ${category.budget}"
+                    )
                 }
 
                 val categoryItems = categories.map { category ->
@@ -484,7 +554,11 @@ class AddTransactionActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Log.e("showCategoryPicker", "Error showing category picker", e)
-                Toast.makeText(this@AddTransactionActivity, "Error loading categories", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@AddTransactionActivity,
+                    "Error loading categories",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

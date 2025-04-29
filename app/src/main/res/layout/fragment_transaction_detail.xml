@@ -111,49 +111,63 @@
                 android:textSize="14sp"
                 android:layout_marginTop="8dp" />
 
-            <!-- Category and Receipt Row -->
+            <!-- Category -->
+            <TextView
+                android:id="@+id/detailCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/category_chip_background"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:text="Food"
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:layout_marginTop="24dp" />
+
+            <!-- Receipt Section (Only visible when a receipt is available) -->
             <LinearLayout
+                android:id="@+id/receiptSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginTop="24dp"
-                android:gravity="center">
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/detailCategory"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/category_chip_background"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Food"
-                    android:textSize="14sp"
-                    android:textColor="@color/white"
-                    android:gravity="center" />
+                    android:text="Receipt"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <FrameLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
+                    android:background="@drawable/edit_text_background">
+
+                    <ImageView
+                        android:id="@+id/receiptImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Receipt"
+                        android:adjustViewBounds="true" />
 
                     <TextView
-                        android:id="@+id/detailReceipt"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:text="📸"
-                        android:textSize="24sp"
-                        android:gravity="center"
-                        android:layout_gravity="end" />
-
-                    <TextView
+                        android:id="@+id/viewFullImageBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Receipt"
-                        android:textSize="10sp"
-                        android:textColor="@color/text_light"
-                        android:layout_gravity="end" />
-                </LinearLayout>
+                        android:text="View Full Image"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:background="@color/primary_purple_light"
+                        android:layout_gravity="center_horizontal|bottom"
+                        android:layout_marginBottom="16dp" />
+                </FrameLayout>
             </LinearLayout>
 
             <!-- Notes Label + Box -->
