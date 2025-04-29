@@ -6,34 +6,50 @@
     android:background="@color/background_gray">
 
     <!-- Header -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingTop="32dp"
         android:paddingBottom="16dp"
-        android:gravity="center_vertical"
-        android:background="@drawable/gradient_background">
+        android:background="@drawable/gradient_background"
+        android:fitsSystemWindows="true">
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/headerTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="Transactions"
             android:textSize="20sp"
             android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/backButton"
+            app:layout_constraintEnd_toStartOf="@id/searchIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"/>
 
         <ImageView
             android:id="@+id/searchIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_search"
-            app:tint="@color/white" />
-    </LinearLayout>
+            app:tint="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Filter Row -->
     <LinearLayout
@@ -45,48 +61,52 @@
         android:gravity="center"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="8dp">
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/periodFilter"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:background="@drawable/filter_button_background"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:text="March ▼"
+            android:background="@drawable/rounded_button_background"
+            android:paddingHorizontal="10dp"
+            android:text="All Time ▼"
             android:textSize="14sp"
             android:textColor="@color/text_dark"
-            android:gravity="center" />
+            android:gravity="center"
+            android:ellipsize="end"
+            android:maxLines="1" />
 
         <TextView
             android:id="@+id/categoryFilter"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:background="@drawable/filter_button_background"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:text="All Categories ▼"
+            android:background="@drawable/rounded_button_background"
+            android:paddingHorizontal="10dp"
+            android:text="Categories ▼"
             android:textSize="14sp"
             android:textColor="@color/text_dark"
-            android:gravity="center" />
+            android:gravity="center"
+            android:ellipsize="end"
+            android:maxLines="1" />
 
         <TextView
             android:id="@+id/sortFilter"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:background="@drawable/filter_button_background"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
+            android:background="@drawable/rounded_button_background"
+            android:paddingHorizontal="10dp"
             android:text="Sort by ▼"
             android:textSize="14sp"
             android:textColor="@color/text_dark"
-            android:gravity="center" />
+            android:gravity="center"
+            android:ellipsize="end"
+            android:maxLines="1" />
     </LinearLayout>
 
     <!-- Summary Card -->
@@ -105,15 +125,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Total for March"
-            android:textSize="16sp"
-            android:textColor="@color/text_dark" />
+            android:text="Total for current period"
+            android:textSize="14sp"
+            android:textColor="@color/text_dark"
+            android:lineSpacingExtra="4dp" />
 
         <TextView
             android:id="@+id/transactionsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="24 transactions"
+            android:text="0 transactions"
             android:textSize="14sp"
             android:textColor="@color/text_light" />
     </LinearLayout>
@@ -126,7 +147,7 @@
         android:layout_height="0dp"
         android:layout_above="@id/loadMoreButton"
         android:paddingHorizontal="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginVertical="8dp"
         android:clipToPadding="false" />
 
     <!-- Load More Button -->
