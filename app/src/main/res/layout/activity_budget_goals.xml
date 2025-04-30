@@ -64,6 +64,7 @@
                 android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/monthText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -125,6 +126,51 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <!-- Minimum Spending Goal Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/card_background"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Minimum Spending Goal"
+                    android:textColor="@color/text_dark"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/minimumGoalValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="R0.00"
+                    android:textColor="@color/text_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/minimumGoalPercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0% of budget"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
+
+                <SeekBar
+                    android:id="@+id/minimumGoalSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:max="100"
+                    android:progress="0" />
+            </LinearLayout>
+
             <!-- Budget Adjustment Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -182,13 +228,14 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <!-- Repeated Category Rows (can be replaced with RecyclerView) -->
-            <include layout="@layout/item_budget_category" />
-            <include layout="@layout/item_budget_category" />
-            <include layout="@layout/item_budget_category" />
-            <include layout="@layout/item_budget_category" />
-            <include layout="@layout/item_budget_category" />
-            <include layout="@layout/item_budget_category" />
+            <!-- Category Container - Will be filled dynamically -->
+            <LinearLayout
+                android:id="@+id/categoryContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <!-- Categories will be added here programmatically -->
+            </LinearLayout>
 
             <!-- Total Allocated -->
             <TextView
