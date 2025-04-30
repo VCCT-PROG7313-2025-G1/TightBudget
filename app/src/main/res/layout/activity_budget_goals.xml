@@ -40,6 +40,15 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/header"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
+
     <!-- Scrollable Content -->
     <ScrollView
         android:id="@+id/scrollView"
@@ -220,12 +229,46 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/balanceButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="Auto-Balance"
+                    android:textColor="@color/purple"
+                    android:textSize="14sp" />
+
+                <TextView
                     android:id="@+id/addCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="+ Add Category"
                     android:textColor="@color/purple"
                     android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+
+                <ProgressBar
+                    android:id="@+id/allocationProgress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressTint="@color/teal_light" />
+
+                <TextView
+                    android:id="@+id/allocationPercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="0% allocated"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- Category Container - Will be filled dynamically -->
