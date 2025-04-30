@@ -45,6 +45,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupUI()
+        loadCurrentUserBudget()
     }
 
     /**
