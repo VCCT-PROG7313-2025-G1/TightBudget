@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -26,6 +27,23 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/statisticsHeader"
+        android:background="#80FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
     <!-- ScrollView for statistics -->
     <ScrollView
         android:id="@+id/statisticsScroll"
@@ -49,7 +67,7 @@
                 android:background="@drawable/card_background"
                 android:padding="8dp"
                 app:singleSelection="true"
-                app:checkedButton="@id/weekButton"
+                app:checkedButton="@id/monthButton"
                 app:selectionRequired="true">
 
                 <com.google.android.material.button.MaterialButton
@@ -113,13 +131,28 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="March 2025"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@color/text_dark" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/periodTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="March 2025"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_dark" />
+
+                        <TextView
+                            android:id="@+id/daysRemaining"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="10 days left"
+                            android:textSize="14sp"
+                            android:textColor="@color/purple"
+                            android:layout_alignParentEnd="true" />
+                    </RelativeLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -140,6 +173,7 @@
                         android:layout_marginTop="4dp" />
 
                     <TextView
+                        android:id="@+id/periodComparison"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="↑ 12% from Feb"
@@ -151,12 +185,13 @@
                         android:id="@+id/budgetUsageText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Budget: R18 000"
+                        android:text="Budget: R18 000 – 85% used"
                         android:textSize="12sp"
                         android:textColor="@color/text_light"
                         android:layout_marginTop="4dp" />
 
                     <ProgressBar
+                        android:id="@+id/budgetProgress"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent"
                         android:layout_height="10dp"
@@ -166,23 +201,258 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Chart Placeholders -->
-            <FrameLayout
-                android:id="@+id/categoryChartPlaceholder"
+            <!-- Category Spending Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/card_background" />
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/lineChartPlaceholder"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Spending by Category"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_dark"
+                        android:textStyle="bold" />
+
+                    <!-- Chart toggle button -->
+                    <LinearLayout
+                        android:id="@+id/chartToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:background="@drawable/rounded_toggle_background"
+                        android:padding="4dp"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/chartToggleIcon"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_bar_chart"
+                            app:tint="@color/teal_light" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/teal_light" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <!-- Chart Placeholder -->
+                <FrameLayout
+                    android:id="@+id/categoryChartPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:background="@drawable/card_background"
+                    android:padding="16dp">
+
+                    <!-- No data message -->
+                    <TextView
+                        android:id="@+id/noDataMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="No spending data for this period"
+                        android:textColor="@color/text_light"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Daily Spending Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/card_background" />
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Daily Spending"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_dark"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/lastDaysText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Last 7 days"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_light"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <!-- Line Chart Placeholder -->
+                <FrameLayout
+                    android:id="@+id/lineChartPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="@drawable/card_background"
+                    android:padding="16dp">
+
+                    <!-- No data message -->
+                    <TextView
+                        android:id="@+id/noDailyDataMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="No daily data available"
+                        android:textColor="@color/text_light"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Spending Forecast Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Spending Forecast"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_dark"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Month-end"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_light"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <!-- Forecast Status -->
+                <TextView
+                    android:id="@+id/forecastStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/red_light"
+                    android:gravity="center"
+                    android:background="@drawable/forecast_status_background"
+                    android:layout_marginBottom="12dp"
+                    android:text="Projected to be OVER budget by R1,200" />
+
+                <!-- Spending Trend Visualization -->
+                <FrameLayout
+                    android:id="@+id/trendContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:background="@drawable/card_background"
+                    android:layout_marginBottom="12dp"
+                    android:padding="8dp" />
+
+                <!-- Forecast Scenarios -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Forecast Scenarios:"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_dark"
+                    android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_background"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <View
+                            android:id="@+id/highSpendIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/highSpendText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="High spend: R19,200"
+                            android:textColor="@color/text_dark" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <View
+                            android:id="@+id/mediumSpendIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/mediumSpendText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Medium spend: R18,000"
+                            android:textColor="@color/text_dark" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:id="@+id/lowSpendIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/lowSpendText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Low spend: R16,800"
+                            android:textColor="@color/text_dark" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
 
             <!-- Tip Box -->
             <TextView
+                android:id="@+id/tipText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="💡 Tip: Reduce Food spending by R500 to stay on budget"
