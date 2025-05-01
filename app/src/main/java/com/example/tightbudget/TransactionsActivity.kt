@@ -68,6 +68,42 @@ class TransactionsActivity : AppCompatActivity() {
             WindowInsetsCompat.CONSUMED
         }
 
+        // Check if launched with a specific category filter
+        if (intent.hasExtra("FILTER_CATEGORY")) {
+            val filterCategory = intent.getStringExtra("FILTER_CATEGORY")
+
+            // Set the category filter text
+            if (!filterCategory.isNullOrEmpty()) {
+                currentCategory = filterCategory
+                binding.categoryFilter.text = filterCategory
+
+                Log.d(TAG, "Filtering by category: $filterCategory")
+            }
+
+            // Check for date filters
+            if (intent.hasExtra("START_DATE") && intent.hasExtra("END_DATE")) {
+                val startDateLong = intent.getLongExtra("START_DATE", 0L)
+                val endDateLong = intent.getLongExtra("END_DATE", 0L)
+
+                if (startDateLong > 0 && endDateLong > 0) {
+                    startDate = Date(startDateLong)
+                    endDate = Date(endDateLong)
+
+                    // Format dates for display
+                    val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+                    val dateRangeText = "${dateFormat.format(startDate!!)} - ${dateFormat.format(endDate!!)}"
+                    binding.periodFilter.text = dateRangeText
+
+                    Log.d(TAG, "Date range filter: $dateRangeText")
+                }
+            }
+
+            // Apply filters after UI is fully initialized
+            binding.root.post {
+                applyAllFilters()
+            }
+        }
+
         // Set up bottom navigation
         setupBottomNavigation()
 

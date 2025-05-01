@@ -358,7 +358,7 @@ class CategorySpendingActivity : AppCompatActivity() {
                     categoryItems.add(item)
                 }
 
-                // Step 6: Handle categories with budget but no spending
+                // Handle categories with budget but no spending
                 categoryBudgets.forEach { budget ->
                     val exists = categoryItems.any {
                         it.name.equals(budget.categoryName, ignoreCase = true)
@@ -385,10 +385,10 @@ class CategorySpendingActivity : AppCompatActivity() {
                     }
                 }
 
-                // Step 7: Sort by current sort option
+                // Sort by current sort option
                 sortAndUpdateCategories()
 
-                // Step 8: Update UI
+                // Update UI
                 runOnUiThread {
                     // Update summary text
                     binding.totalSpentText.text = "Total: R${String.format("%,.2f", totalSpent)}"
@@ -521,23 +521,49 @@ class CategorySpendingActivity : AppCompatActivity() {
     }
 
     /**
-     * Show category detail bottom sheet
+     * Show category detail bottom sheet with better error handling
      */
     private fun showCategoryDetail(category: CategorySpendingItem) {
-        // Filter transactions for this category
-        val categoryTransactions = transactions.filter {
-            it.category.equals(category.name, ignoreCase = true)
+        try {
+            // Log action for debugging
+            Log.d(TAG, "Showing category detail for: ${category.name}")
+
+            // Filter transactions for this category
+            val categoryTransactions = transactions.filter {
+                it.category.equals(category.name, ignoreCase = true)
+            }
+
+            // Log transaction count
+            Log.d(TAG, "Found ${categoryTransactions.size} transactions for category ${category.name}")
+
+            // Create bottom sheet fragment
+            val bottomSheet = CategoryDetailBottomSheet.newInstance(
+                category = category,
+                transactions = categoryTransactions,
+                startDate = startDate,
+                endDate = endDate
+            )
+
+            // Show bottom sheet with error handling
+            try {
+                bottomSheet.show(supportFragmentManager, "CategoryDetail")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error showing bottom sheet: ${e.message}", e)
+                Toast.makeText(
+                    this,
+                    "Error showing category details: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } catch (e: Exception) {
+            // Log and display any errors
+            Log.e(TAG, "Error preparing category detail: ${e.message}", e)
+            Toast.makeText(
+                this,
+                "Error showing category details: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
-
-        // Create and show bottom sheet
-        val bottomSheet = CategoryDetailBottomSheet.newInstance(
-            category = category,
-            transactions = categoryTransactions,
-            startDate = startDate,
-            endDate = endDate
-        )
-
-        bottomSheet.show(supportFragmentManager, "CategoryDetail")
     }
 
     /**

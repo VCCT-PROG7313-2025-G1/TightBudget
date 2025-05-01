@@ -2,6 +2,7 @@ package com.example.tightbudget.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import com.example.tightbudget.models.CategorySpendingItem
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.utils.ProgressBarUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -26,10 +28,16 @@ import java.util.*
  */
 class CategoryDetailBottomSheet : BottomSheetDialogFragment() {
 
-    private lateinit var category: CategorySpendingItem
-    private lateinit var transactions: List<Transaction>
-    private lateinit var startDate: Date
-    private lateinit var endDate: Date
+    private val TAG = "CategoryDetailSheet"
+
+    // Data variables
+    private var categoryName: String = ""
+    private var categoryEmoji: String = ""
+    private var categoryAmount: Double = 0.0
+    private var categoryBudget: Double = 0.0
+    private var transactions: List<Transaction> = listOf()
+    private var startDate: Long = 0L
+    private var endDate: Long = 0L
 
     // UI Components
     private lateinit var categoryEmojiText: TextView
@@ -43,15 +51,8 @@ class CategoryDetailBottomSheet : BottomSheetDialogFragment() {
     private lateinit var viewAllButton: Button
     private lateinit var closeButton: ImageView
 
-    // RecyclerView adapter
-    private lateinit var transactionAdapter: TransactionAdapter
-
     companion object {
-        const val ARG_CATEGORY = "category"
-        const val ARG_TRANSACTIONS = "transactions"
-        const val ARG_START_DATE = "start_date"
-        const val ARG_END_DATE = "end_date"
-
+        // Static method to create a new instance with all required data
         fun newInstance(
             category: CategorySpendingItem,
             transactions: List<Transaction>,
@@ -61,11 +62,16 @@ class CategoryDetailBottomSheet : BottomSheetDialogFragment() {
             val fragment = CategoryDetailBottomSheet()
             val args = Bundle()
 
-            // Convert objects to serializable/parcelable format
-            args.putString(ARG_CATEGORY, category.id)
-            args.putParcelableArrayList(ARG_TRANSACTIONS, ArrayList(transactions))
-            args.putLong(ARG_START_DATE, startDate.time)
-            args.putLong(ARG_END_DATE, endDate.time)
+            // Store simple data as primitives or strings - avoid serialization issues
+            args.putString("category_name", category.name)
+            args.putString("category_emoji", category.emoji)
+            args.putDouble("category_amount", category.amount)
+            args.putDouble("category_budget", category.budget)
+            args.putLong("start_date", startDate.time)
+            args.putLong("end_date", endDate.time)
+
+            // Serialize the transactions list to pass it as a Serializable instead of Parcelable
+            fragment.transactions = transactions
 
             fragment.arguments = args
             return fragment
@@ -83,116 +89,131 @@ class CategoryDetailBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Find views
-        categoryEmojiText = view.findViewById(R.id.categoryEmojiLarge)
-        categoryNameText = view.findViewById(R.id.categoryNameLarge)
-        totalAmountText = view.findViewById(R.id.detailTotalAmount)
-        budgetAmountText = view.findViewById(R.id.detailBudgetAmount)
-        remainingAmountText = view.findViewById(R.id.detailRemainingAmount)
-        progressBar = view.findViewById(R.id.detailProgressBar)
-        transactionsRecyclerView = view.findViewById(R.id.detailTransactionsRecyclerView)
-        emptyStateText = view.findViewById(R.id.emptyStateText)
-        viewAllButton = view.findViewById(R.id.viewAllTransactionsButton)
-        closeButton = view.findViewById(R.id.closeButton)
+        try {
+            // Find views
+            categoryEmojiText = view.findViewById(R.id.categoryEmojiLarge)
+            categoryNameText = view.findViewById(R.id.categoryNameLarge)
+            totalAmountText = view.findViewById(R.id.detailTotalAmount)
+            budgetAmountText = view.findViewById(R.id.detailBudgetAmount)
+            remainingAmountText = view.findViewById(R.id.detailRemainingAmount)
+            progressBar = view.findViewById(R.id.detailProgressBar)
+            transactionsRecyclerView = view.findViewById(R.id.detailTransactionsRecyclerView)
+            emptyStateText = view.findViewById(R.id.emptyStateText)
+            viewAllButton = view.findViewById(R.id.viewAllTransactionsButton)
+            closeButton = view.findViewById(R.id.closeButton)
 
-        // Initialize RecyclerView
-        transactionsRecyclerView.layoutManager = LinearLayoutManager(context)
+            // Set up RecyclerView
+            transactionsRecyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Set up close button
-        closeButton.setOnClickListener {
-            dismiss()
+            // Set up close button
+            closeButton.setOnClickListener {
+                dismiss()
+            }
+
+            // Get data from arguments
+            setupFromArguments()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onViewCreated: ${e.message}", e)
         }
-
-        // Get data from arguments
-        setupFromArguments()
     }
 
     private fun setupFromArguments() {
-        // Get category and transactions from arguments
-        arguments?.let { args ->
-            val categoryId = args.getString(ARG_CATEGORY, "")
-            val transactionList =
-                args.getParcelableArrayList<Transaction>(ARG_TRANSACTIONS) ?: arrayListOf()
-            val startTimestamp = args.getLong(ARG_START_DATE)
-            val endTimestamp = args.getLong(ARG_END_DATE)
+        try {
+            // Get data from arguments
+            arguments?.let { args ->
+                categoryName = args.getString("category_name", "")
+                categoryEmoji = args.getString("category_emoji", "")
+                categoryAmount = args.getDouble("category_amount", 0.0)
+                categoryBudget = args.getDouble("category_budget", 0.0)
+                startDate = args.getLong("start_date", 0L)
+                endDate = args.getLong("end_date", 0L)
 
-            // Recreate the category object and dates (will be done properly in real implementation)
-            startDate = Date(startTimestamp)
-            endDate = Date(endTimestamp)
-
-            // Filter transactions just for this category
-            transactions = transactionList.filter { it.category == categoryId }
-
-            // Initialize with the data
-            initializeWithCategory()
+                // Now initialize UI with the data
+                initializeWithCategory()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in setupFromArguments: ${e.message}", e)
         }
     }
 
     private fun initializeWithCategory() {
-        // Set category info
-        categoryEmojiText.text = category.emoji
-        categoryNameText.text = category.name
+        try {
+            // Set category info
+            categoryEmojiText.text = categoryEmoji
+            categoryNameText.text = categoryName
 
-        // Set amounts
-        totalAmountText.text = "R${String.format("%,.2f", category.amount)}"
-        budgetAmountText.text = "R${String.format("%,.2f", category.budget)}"
+            // Set amounts
+            totalAmountText.text = "R${String.format("%,.2f", categoryAmount)}"
+            budgetAmountText.text = "R${String.format("%,.2f", categoryBudget)}"
 
-        // Calculate remaining amount
-        val remaining = category.budget - category.amount
-        remainingAmountText.text = "R${String.format("%,.2f", remaining)}"
+            // Calculate remaining amount
+            val remaining = categoryBudget - categoryAmount
+            remainingAmountText.text = "R${String.format("%,.2f", remaining)}"
 
-        // Set text color based on remaining amount
-        if (remaining < 0) {
-            remainingAmountText.setTextColor(requireContext().getColor(R.color.red_light))
-        } else {
-            remainingAmountText.setTextColor(requireContext().getColor(R.color.green_light))
-        }
-
-        // Set progress bar
-        val progressPercentage = if (category.budget > 0) {
-            (category.amount / category.budget) * 100
-        } else {
-            0.0
-        }
-
-        progressBar.max = 100
-        progressBar.progress = progressPercentage.toInt().coerceIn(0, 100)
-
-        // Apply color to progress bar based on spending vs budget
-        ProgressBarUtils.applyBudgetStatusProgressBar(
-            progressBar,
-            requireContext(),
-            category.amount.toFloat(),
-            category.budget.toFloat()
-        )
-
-        // Set up transactions
-        if (transactions.isEmpty()) {
-            transactionsRecyclerView.visibility = View.GONE
-            emptyStateText.visibility = View.VISIBLE
-        } else {
-            transactionsRecyclerView.visibility = View.VISIBLE
-            emptyStateText.visibility = View.GONE
-
-            // Set up transaction adapter
-            transactionAdapter = TransactionAdapter(transactions) { transaction ->
-                // Show transaction detail when clicked
-                val detailSheet = TransactionDetailBottomSheet.newInstance(transaction)
-                detailSheet.show(parentFragmentManager, "TransactionDetail")
+            // Set text color based on remaining amount
+            if (remaining < 0) {
+                remainingAmountText.setTextColor(requireContext().getColor(R.color.red_light))
+            } else {
+                remainingAmountText.setTextColor(requireContext().getColor(R.color.green_light))
             }
 
-            transactionsRecyclerView.adapter = transactionAdapter
-        }
-
-        // Set up view all button
-        viewAllButton.setOnClickListener {
-            val intent = Intent(requireContext(), TransactionsActivity::class.java).apply {
-                putExtra("FILTER_CATEGORY", category.name)
-                putExtra("START_DATE", startDate.time)
-                putExtra("END_DATE", endDate.time)
+            // Set progress bar
+            val progressPercentage = if (categoryBudget > 0) {
+                (categoryAmount / categoryBudget) * 100
+            } else {
+                0.0
             }
-            startActivity(intent)
-            dismiss()
+
+            progressBar.max = 100
+            progressBar.progress = progressPercentage.toInt().coerceIn(0, 100)
+
+            // Apply color to progress bar based on spending vs budget
+            ProgressBarUtils.applyBudgetStatusProgressBar(
+                progressBar,
+                requireContext(),
+                categoryAmount.toFloat(),
+                categoryBudget.toFloat()
+            )
+
+            // Filter for transactions in this category
+            val categoryTransactions = transactions.filter {
+                it.category.equals(categoryName, ignoreCase = true)
+            }
+
+            // Set up transactions
+            if (categoryTransactions.isEmpty()) {
+                transactionsRecyclerView.visibility = View.GONE
+                emptyStateText.visibility = View.VISIBLE
+            } else {
+                transactionsRecyclerView.visibility = View.VISIBLE
+                emptyStateText.visibility = View.GONE
+
+                // Set up transaction adapter
+                val transactionAdapter = TransactionAdapter(categoryTransactions) { transaction ->
+                    // Show transaction detail when clicked
+                    val detailSheet = TransactionDetailBottomSheet.newInstance(transaction)
+                    detailSheet.show(parentFragmentManager, "TransactionDetail")
+                }
+
+                transactionsRecyclerView.adapter = transactionAdapter
+            }
+
+            // Set up view all button
+            viewAllButton.setOnClickListener {
+                try {
+                    val intent = Intent(requireContext(), TransactionsActivity::class.java).apply {
+                        putExtra("FILTER_CATEGORY", categoryName)
+                        putExtra("START_DATE", startDate)
+                        putExtra("END_DATE", endDate)
+                    }
+                    startActivity(intent)
+                    dismiss()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error in viewAllButton click: ${e.message}", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in initializeWithCategory: ${e.message}", e)
         }
     }
 }
