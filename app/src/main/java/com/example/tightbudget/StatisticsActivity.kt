@@ -755,34 +755,40 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     /**
-     * Allows navigation between screens using the bottom navigation bar
+     * Handles bottom navigation bar.
      */
     private fun setupBottomNavigation() {
-        binding.bottomNavBar.selectedItemId = R.id.nav_reports
+        val bottomNavBar = binding.bottomNavBar
+        bottomNavBar.selectedItemId = R.id.nav_reports
 
-        binding.bottomNavBar.setOnItemSelectedListener { item ->
+        bottomNavBar.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> {
                     startActivity(Intent(this, DashboardActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
-                R.id.nav_reports -> true
+
+                R.id.nav_reports -> true // Already on this screen
+
                 R.id.nav_add_transaction -> {
                     startActivity(Intent(this, AddTransactionActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 R.id.nav_wallet -> {
                     startActivity(Intent(this, TransactionsActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 R.id.nav_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
                     overridePendingTransition(0, 0)
                     true
                 }
+
                 else -> false
             }
         }

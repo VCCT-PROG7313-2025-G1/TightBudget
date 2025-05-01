@@ -2,6 +2,7 @@ package com.example.tightbudget
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -66,6 +67,9 @@ class TransactionsActivity : AppCompatActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
+
+        // Set up bottom navigation
+        setupBottomNavigation()
 
         // Set up the RecyclerView and adapter
         setupRecyclerView()
@@ -526,5 +530,45 @@ class TransactionsActivity : AppCompatActivity() {
                 description = "Dinner delivery"
             )
         )
+    }
+
+    /**
+     * Handles bottom navigation bar.
+     */
+    private fun setupBottomNavigation() {
+        val bottomNavBar = binding.bottomNavBar
+        bottomNavBar.selectedItemId = R.id.nav_wallet
+
+        bottomNavBar.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_reports -> {
+                    startActivity(Intent(this, StatisticsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_add_transaction -> {
+                    startActivity(Intent(this, AddTransactionActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_wallet -> true // Already on this screen
+
+                R.id.nav_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                else -> false
+            }
+        }
     }
 }

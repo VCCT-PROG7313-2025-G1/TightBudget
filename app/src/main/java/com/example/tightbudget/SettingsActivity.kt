@@ -40,34 +40,40 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * This method configures the bottom navigation bar.
-     * It highlights the "Settings" tab and defines actions for each tab.
+     * Handles bottom navigation bar.
      */
     private fun setupBottomNavigation() {
-        val navBar = findViewById<BottomNavigationView>(R.id.bottomNavBar)
-        navBar.selectedItemId = R.id.nav_settings
+        val bottomNavBar = binding.bottomNavBar
+        bottomNavBar.selectedItemId = R.id.nav_settings
 
-        navBar.setOnItemSelectedListener { item ->
+        bottomNavBar.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> {
-                    // Navigate to the dashboard screen
                     startActivity(Intent(this, DashboardActivity::class.java))
+                    overridePendingTransition(0, 0)
                     true
                 }
+
+                R.id.nav_reports -> {
+                    startActivity(Intent(this, StatisticsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_add_transaction -> {
+                    startActivity(Intent(this, AddTransactionActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
                 R.id.nav_wallet -> {
                     startActivity(Intent(this, TransactionsActivity::class.java))
+                    overridePendingTransition(0, 0)
                     true
                 }
-                R.id.nav_reports -> {
-                    // Placeholder: add ReportsActivity if required
-                    true
-                }
-                R.id.nav_add_transaction -> {
-                    // Navigate to the Add Transaction screen
-                    startActivity(Intent(this, AddTransactionActivity::class.java))
-                    true
-                }
+
                 R.id.nav_settings -> true // Already on this screen
+
                 else -> false
             }
         }
