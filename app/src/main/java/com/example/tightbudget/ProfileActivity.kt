@@ -1,6 +1,7 @@
 package com.example.tightbudget
 
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -54,7 +55,8 @@ class ProfileActivity : AppCompatActivity() {
         val remaining = nextLevelThreshold - currentPoints
         binding.levelProgressBar.progress = ((currentPoints / nextLevelThreshold) * 100).toInt()
 
-        binding.levelProgressBar.contentDescription = "Progress to next level: ${binding.levelProgressBar.progress}%"
+        binding.levelProgressBar.contentDescription =
+            "Progress to next level: ${binding.levelProgressBar.progress}%"
     }
 
     /**
@@ -73,6 +75,14 @@ class ProfileActivity : AppCompatActivity() {
             "Sun" to 70f
         )
 
-        ChartUtils.addLineChartToContainer(this, container, samplePoints)
+        container.removeAllViews()
+        val lineChart = ChartUtils.EnhancedLineChartView(this, samplePoints, false)
+        container.addView(
+            lineChart,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
     }
 }
