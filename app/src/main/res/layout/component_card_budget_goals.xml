@@ -40,140 +40,325 @@
                 android:layout_alignParentEnd="true" />
         </RelativeLayout>
 
-        <!-- Goal Items -->
+        <!-- Budget Summary -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="12dp">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
 
-            <!-- Housing -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🏠 Housing"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp" />
+                    android:text="Total Budget"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_medium" />
+
                 <TextView
-                    android:id="@+id/housingProgressText"
+                    android:id="@+id/totalBudgetAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="R650/R800"
-                    android:textColor="@color/text_medium"
+                    android:text="R5,000.00"
                     android:textSize="14sp"
-                    android:layout_alignParentEnd="true" />
-            </RelativeLayout>
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark" />
+            </LinearLayout>
 
-            <ProgressBar
-                android:id="@+id/housingProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:layout_marginTop="4dp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Spent So Far"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_medium" />
+
+                <TextView
+                    android:id="@+id/spentSoFarAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R1,513.47"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Remaining"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_medium" />
+
+                <TextView
+                    android:id="@+id/remainingAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R3,486.53"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_light" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Food -->
+        <!-- Overall progress -->
+        <ProgressBar
+            android:id="@+id/overallBudgetProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginBottom="16dp"
+            android:progress="30"
+            android:progressTint="@color/teal_light"
+            android:background="@color/background_gray" />
+
+        <!-- Min spending goal -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="12dp">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🍔 Food"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp" />
-                <TextView
-                    android:id="@+id/foodProgressText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R425.75/R400"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentEnd="true" />
-            </RelativeLayout>
+            <TextView
+                android:id="@+id/minSpendingGoalText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Minimum Spending Goal:"
+                android:textSize="12sp"
+                android:textColor="@color/text_medium"
+                android:visibility="visible" />
 
-            <ProgressBar
-                android:id="@+id/foodProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:layout_marginTop="4dp" />
+            <TextView
+                android:id="@+id/minSpendingGoalAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R1,000.00"
+                android:textSize="12sp"
+                android:textColor="@color/text_medium"
+                android:layout_marginStart="4dp"
+                android:visibility="visible" />
         </LinearLayout>
 
-        <!-- Transport -->
-        <LinearLayout
+        <!-- Create budget message (initially hidden) -->
+        <TextView
+            android:id="@+id/createBudgetMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="12dp">
+            android:text="You haven't set a budget for this month. Tap 'Manage' to create one."
+            android:textSize="14sp"
+            android:textColor="@color/orange"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🚗 Transport"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp" />
-                <TextView
-                    android:id="@+id/transportProgressText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R232.50/R250"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentEnd="true" />
-            </RelativeLayout>
-
-            <ProgressBar
-                android:id="@+id/transportProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-
-        <!-- Entertainment -->
+        <!-- Container for category items - IMPORTANT FOR DYNAMIC CATEGORIES -->
         <LinearLayout
+            android:id="@+id/categoryContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <RelativeLayout
+            <!-- Housing -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🎬 Entertainment"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp" />
-                <TextView
-                    android:id="@+id/entertainmentProgressText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R205.02/R150"
-                    android:textColor="@color/text_medium"
-                    android:textSize="14sp"
-                    android:layout_alignParentEnd="true" />
-            </RelativeLayout>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
 
-            <ProgressBar
-                android:id="@+id/entertainmentProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏠 Housing"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/housingProgressText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="R650/R800"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/housingAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R650.00 / R800.00"
+                    android:textSize="12sp"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    android:id="@+id/housingProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:progress="80"
+                    android:progressTint="@color/teal_light"
+                    android:background="@color/background_gray" />
+            </LinearLayout>
+
+            <!-- Food -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:layout_marginTop="4dp" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🍔 Food"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/foodProgressText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="R425.75/R400"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/foodAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R425.75 / R400.00"
+                    android:textSize="12sp"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    android:id="@+id/foodProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:progress="106"
+                    android:progressTint="@color/primary_purple_light"
+                    android:background="@color/background_gray" />
+            </LinearLayout>
+
+            <!-- Transport -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🚗 Transport"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/transportProgressText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="R232.50/R250"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/transportAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R232.50 / R250.00"
+                    android:textSize="12sp"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    android:id="@+id/transportProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:progress="93"
+                    android:progressTint="@color/blue_light"
+                    android:background="@color/background_gray" />
+            </LinearLayout>
+
+            <!-- Entertainment -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎬 Entertainment"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/entertainmentProgressText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="R205.02/R150"
+                        android:textColor="@color/text_medium"
+                        android:textSize="14sp"
+                        android:layout_alignParentEnd="true" />
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/entertainmentAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R205.02 / R150.00"
+                    android:textSize="12sp"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    android:id="@+id/entertainmentProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:progress="137"
+                    android:progressTint="@color/red_light"
+                    android:background="@color/background_gray" />
+            </LinearLayout>
+
+            <!-- Dynamic categories will be added here -->
+
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

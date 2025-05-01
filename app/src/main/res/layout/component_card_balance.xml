@@ -25,7 +25,7 @@
             android:id="@+id/balanceAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="R2 486,73"
+            android:text="R2 486,73"
             android:textColor="@color/text_dark"
             android:textSize="28sp"
             android:textStyle="bold" />
@@ -46,9 +46,10 @@
                 android:layout_centerVertical="true" />
 
             <TextView
+                android:id="@+id/budgetPercentage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="68 %"
+                android:text="68 %"
                 android:textColor="@color/text_medium"
                 android:textSize="12sp"
                 android:layout_alignParentEnd="true"

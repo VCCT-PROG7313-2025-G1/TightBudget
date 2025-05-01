@@ -8,9 +8,11 @@
     app:cardCornerRadius="15dp"
     app:cardElevation="2dp">
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/achievementsSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="20dp">
 
         <!-- Section Title -->
@@ -151,5 +153,5 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
         </LinearLayout>
-    </RelativeLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>
