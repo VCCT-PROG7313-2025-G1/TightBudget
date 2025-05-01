@@ -567,66 +567,171 @@ class StatisticsActivity : AppCompatActivity() {
      * Update forecast section with projected spending
      */
     private fun updateForecastSection() {
-        // Constants for forecast variation
         val FORECAST_HIGH_VARIANCE = 1.1f
         val FORECAST_LOW_VARIANCE = 0.9f
+        val MIN_DAYS_FOR_FORECAST = 3
+        val MAX_PROJECTION_MULTIPLIER = 3.0 // Cap projections at 3x budget
 
-        // Total days in current period (e.g. 30 days in April)
         val totalDays = getDaysInPeriod(selectedPeriod).takeIf { it > 0 } ?: 30
         val daysPassed = totalDays - daysRemaining
 
-        // Avoid division by zero: use 50% as fallback
-        val daysRatio = if (totalDays > 0) {
-            daysPassed.toFloat() / totalDays.toFloat()
-        } else 0.5f
+        // Launch a coroutine to handle the suspend functions
+        lifecycleScope.launch {
+            // Get historical average if available
+            val historicalMonthlyAverage = getHistoricalAverage() ?: budgetAmount.toFloat()
 
-        // Project future spending using current pace
-        val projectedAmount = if (daysRatio > 0) {
-            totalSpent / daysRatio
-        } else {
-            totalSpent
+            // Calculate base projection with different methods based on days passed
+            val projectedAmount = when {
+                // For very early days (0-2), use a weighted blend of historical and current pace
+                daysPassed < MIN_DAYS_FOR_FORECAST -> {
+                    val currentWeight = 0.3f * (daysPassed / MIN_DAYS_FOR_FORECAST.toFloat())
+                    val historicalWeight = 1.0f - currentWeight
+
+                    val currentPaceProjection = if (daysPassed > 0) {
+                        (totalSpent / daysPassed) * totalDays
+                    } else {
+                        0.0 // No days passed means no projection from current pace
+                    }
+
+                    (currentPaceProjection * currentWeight) + (historicalMonthlyAverage * historicalWeight)
+                }
+
+                // For early-mid month (3-10 days), gradually increase reliance on current pace
+                daysPassed < 10 -> {
+                    val currentWeight = 0.5f + (0.5f * ((daysPassed - MIN_DAYS_FOR_FORECAST) / (10 - MIN_DAYS_FOR_FORECAST).toFloat()))
+                    val historicalWeight = 1.0f - currentWeight
+
+                    // Calculate current pace projection
+                    val currentPaceProjection = (totalSpent / daysPassed) * totalDays
+
+                    (currentPaceProjection * currentWeight) + (historicalMonthlyAverage * historicalWeight)
+                }
+
+                // For most of the month (10+ days), primarily use current pace
+                else -> {
+                    // Standard projection calculation
+                    (totalSpent / daysPassed) * totalDays
+                }
+            }
+
+            // Cap projection at a reasonable maximum to prevent absurd values
+            val cappedProjection = minOf(projectedAmount, budgetAmount * MAX_PROJECTION_MULTIPLIER)
+
+            // Forecast scenarios (+10%, base, -10%)
+            val highSpend = cappedProjection * FORECAST_HIGH_VARIANCE
+            val mediumSpend = cappedProjection
+            val lowSpend = cappedProjection * FORECAST_LOW_VARIANCE
+
+            // Update UI on the main thread
+            withContext(Dispatchers.Main) {
+                binding.highSpendText.text = "High spend: R${String.format("%,.0f", highSpend)}"
+                binding.mediumSpendText.text = "Medium spend: R${String.format("%,.0f", mediumSpend)}"
+                binding.lowSpendText.text = "Low spend: R${String.format("%,.0f", lowSpend)}"
+
+                // Show forecast confidence indicator if early in period
+                val confidenceLevel = when {
+                    daysPassed < MIN_DAYS_FOR_FORECAST -> "Low"
+                    daysPassed < 10 -> "Medium"
+                    else -> "High"
+                }
+
+                if (daysPassed < 10) {
+                    binding.forecastConfidence.visibility = View.VISIBLE
+                    binding.forecastConfidence.text = "Forecast confidence: $confidenceLevel"
+                } else {
+                    binding.forecastConfidence.visibility = View.GONE
+                }
+
+                // Display OVER/UNDER budget forecast
+                if (cappedProjection > budgetAmount) {
+                    val overAmount = cappedProjection - budgetAmount
+                    binding.forecastStatus.text = "Projected to be OVER budget by R${String.format("%,.0f", overAmount)}"
+                    binding.forecastStatus.setTextColor(ContextCompat.getColor(this@StatisticsActivity, R.color.red_light))
+                } else {
+                    val underAmount = budgetAmount - cappedProjection
+                    binding.forecastStatus.text = "Projected to be UNDER budget by R${String.format("%,.0f", underAmount)}"
+                    binding.forecastStatus.setTextColor(ContextCompat.getColor(this@StatisticsActivity, R.color.green_light))
+                }
+
+                // Create and display forecast bar chart
+                binding.trendContainer.removeAllViews()
+                val forecastChart = ChartUtils.createForecastChartView(
+                    this@StatisticsActivity,
+                    totalSpent.toFloat(),
+                    budgetAmount.toFloat(),
+                    cappedProjection.toFloat(),
+                    (daysPassed.toFloat() / totalDays.toFloat()).coerceIn(0.01f, 0.99f)
+                )
+
+                binding.trendContainer.addView(
+                    forecastChart,
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                )
+            }
         }
+    }
 
-        // Create forecast scenarios (+10%, base, -10%)
-        val highSpend = projectedAmount * FORECAST_HIGH_VARIANCE
-        val mediumSpend = projectedAmount
-        val lowSpend = projectedAmount * FORECAST_LOW_VARIANCE
+    /**
+     * Get historical average monthly spending (from past 3 months)
+     * Returns null if no historical data is available
+     */
+    private suspend fun getHistoricalAverage(): Float? {
+        return try {
+            // Get current calendar info
+            val calendar = Calendar.getInstance()
+            val currentMonth = calendar.get(Calendar.MONTH) + 1 // 0-based to 1-based
+            val currentYear = calendar.get(Calendar.YEAR)
 
-        // Update forecast UI text
-        binding.highSpendText.text = "High spend: R${String.format("%,.0f", highSpend)}"
-        binding.mediumSpendText.text = "Medium spend: R${String.format("%,.0f", mediumSpend)}"
-        binding.lowSpendText.text = "Low spend: R${String.format("%,.0f", lowSpend)}"
+            // Create a list to store past 3 months
+            val pastMonths = mutableListOf<Pair<Int, Int>>() // Month, Year pairs
 
-        // Display budget over/under projection
-        if (projectedAmount > budgetAmount) {
-            val overAmount = projectedAmount - budgetAmount
-            binding.forecastStatus.text =
-                "Projected to be OVER budget by R${String.format("%,.0f", overAmount)}"
-            binding.forecastStatus.setTextColor(ContextCompat.getColor(this, R.color.red_light))
-        } else {
-            val underAmount = budgetAmount - projectedAmount
-            binding.forecastStatus.text =
-                "Projected to be UNDER budget by R${String.format("%,.0f", underAmount)}"
-            binding.forecastStatus.setTextColor(ContextCompat.getColor(this, R.color.green_light))
+            // Calculate past 3 months
+            for (i in 1..3) {
+                calendar.set(currentYear, currentMonth - 1, 1)
+                calendar.add(Calendar.MONTH, -i)
+                pastMonths.add(Pair(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR)))
+            }
+
+            // Try to get total spending for each of the past 3 months
+            var totalPastSpending = 0.0
+            var monthsWithData = 0
+
+            pastMonths.forEach { (month, year) ->
+                val budgetGoal = db.budgetGoalDao().getBudgetGoalForMonth(userId, month, year)
+
+                if (budgetGoal != null) {
+                    // Get start and end date for this month
+                    calendar.set(year, month - 1, 1, 0, 0, 0)
+                    val startDate = calendar.time
+
+                    calendar.set(year, month - 1, calendar.getActualMaximum(Calendar.DAY_OF_MONTH), 23, 59, 59)
+                    val endDate = calendar.time
+
+                    // Get transactions for this month
+                    val transactions = db.transactionDao()
+                        .getTransactionsForPeriod(userId, startDate, endDate)
+                        .filter { it.isExpense }
+
+                    if (transactions.isNotEmpty()) {
+                        totalPastSpending += transactions.sumOf { it.amount }
+                        monthsWithData++
+                    }
+                }
+            }
+
+            // Calculate average if we have data
+            if (monthsWithData > 0) {
+                (totalPastSpending / monthsWithData).toFloat()
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("StatisticsActivity", "Error calculating historical average: ${e.message}", e)
+            null
         }
-
-        // Add forecast trend chart to container
-        binding.trendContainer.removeAllViews()
-        val forecastChart = ChartUtils.createForecastChartView(
-            this,
-            totalSpent.toFloat(),
-            budgetAmount.toFloat(),
-            projectedAmount.toFloat(),
-            daysRatio
-        )
-
-        binding.trendContainer.addView(
-            forecastChart,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
     }
 
     /**

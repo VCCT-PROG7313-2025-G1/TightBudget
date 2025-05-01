@@ -361,6 +361,18 @@
                     android:layout_marginBottom="12dp"
                     android:text="Projected to be OVER budget by R1,200" />
 
+                <TextView
+                    android:id="@+id/forecastConfidence"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Forecast confidence: Low"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp" />
+
                 <!-- Spending Trend Visualization -->
                 <FrameLayout
                     android:id="@+id/trendContainer"
