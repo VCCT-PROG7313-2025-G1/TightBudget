@@ -101,6 +101,7 @@ class AddTransactionActivity : AppCompatActivity() {
         setupPhotoButton()          // Option to attach photo
         setupSaveButton()           // Save and validate inputs
         setupBackButton()           // Handle back navigation
+        setupBottomNavigation()     // Bottom navigation bar
 
         Log.d(TAG, "AddTransactionActivity created")
     }
@@ -574,6 +575,46 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun setupBackButton() {
         binding.backButton.setOnClickListener {
             onBackPressed()
+        }
+    }
+
+    /**
+     * Handles bottom navigation bar.
+     */
+    private fun setupBottomNavigation() {
+        val bottomNavBar = binding.bottomNavBar
+        bottomNavBar.selectedItemId = R.id.nav_add_transaction
+
+        bottomNavBar.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_reports -> {
+                    startActivity(Intent(this, StatisticsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_add_transaction -> true // Already on this screen
+
+                R.id.nav_wallet -> {
+                    startActivity(Intent(this, TransactionsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                R.id.nav_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+
+                else -> false
+            }
         }
     }
 
