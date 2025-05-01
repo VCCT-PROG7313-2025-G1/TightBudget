@@ -831,9 +831,14 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(Intent(this, TransactionsActivity::class.java))
         }
 
-        // Hide badges button if not needed for Part 2
+        root.findViewById<TextView>(R.id.viewAllSpendingButton)?.setOnClickListener {
+            startActivity(Intent(this, CategorySpendingActivity::class.java))
+        }
+
+        // Hide badges button (Gamification feature not implemented yet)
         val allBadgesButton = root.findViewById<TextView>(R.id.allBadgesButton)
         allBadgesButton?.visibility = View.GONE
+
     }
 
     /**
@@ -842,7 +847,7 @@ class DashboardActivity : AppCompatActivity() {
     private fun setupAchievementPlaceholders() {
         val root = findViewById<View>(R.id.dashboardMainCardsRoot)
 
-        // Simply hide the achievement section for Part 2
+        // Simply hide the achievement section for Part 2 (Gamification feature not implemented yet)
         val achievementSection = root.findViewById<LinearLayout>(R.id.achievementsSection)
         achievementSection?.visibility = View.GONE
     }
