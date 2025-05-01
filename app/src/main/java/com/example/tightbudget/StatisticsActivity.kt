@@ -68,6 +68,7 @@ class StatisticsActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupPeriodButtons()
         setupChartToggle()
+        setupBackButton()
 
         // Load default period stats
         loadStatsForPeriod("Month")
@@ -792,6 +793,21 @@ class StatisticsActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    // Handles the back button click
+    private fun setupBackButton() {
+        binding.backButton.setOnClickListener {
+            onBackPressed()
+        }
+    }
+
+    /**
+     * Handle back button press
+     */
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 
     /**
