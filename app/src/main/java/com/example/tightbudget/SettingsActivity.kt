@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import com.example.tightbudget.databinding.ActivitySettingsBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -25,18 +22,14 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Fix header cut-off on devices with status bar / notch
-        ViewCompat.setOnApplyWindowInsetsListener(binding.header) { view, insets ->
-            val topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top
-            view.updatePadding(top = topInset + view.paddingTop)
-            insets
-        }
-
         // Initialise the bottom navigation bar and handle tab clicks
         setupBottomNavigation()
 
         // Handle click events for each settings item
         setupClickListeners()
+
+        setupBackButton()
+
     }
 
     /**
@@ -76,6 +69,13 @@ class SettingsActivity : AppCompatActivity() {
 
                 else -> false
             }
+        }
+    }
+
+    // Handles the back button click
+    private fun setupBackButton() {
+        binding.backButton.setOnClickListener {
+            onBackPressed()
         }
     }
 
@@ -128,5 +128,10 @@ class SettingsActivity : AppCompatActivity() {
             Log.d("Settings", "Sign out clicked")
             // TODO: Implement logout flow and return to login screen
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 }

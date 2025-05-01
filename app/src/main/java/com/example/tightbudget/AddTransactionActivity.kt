@@ -89,11 +89,6 @@ class AddTransactionActivity : AppCompatActivity() {
             showCreateCategoryModal()
         }
 
-        window.decorView.setOnApplyWindowInsetsListener { _, insets ->
-            binding.headerFrame.setPadding(0, insets.systemWindowInsetTop, 0, 0)
-            insets
-        }
-
         setupTransactionTypeToggle() // Switch between Expense and Income
         setupCategoryChips()        // Category options with emojis
         setupTransactionDatePicker()// Main date of transaction
