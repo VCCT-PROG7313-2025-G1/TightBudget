@@ -21,10 +21,11 @@ import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.TransactionDetailBottomSheet
 import com.example.tightbudget.utils.CategoryConstants
 import com.example.tightbudget.utils.ChartUtils
+import com.example.tightbudget.utils.DashboardDataManager
+import com.example.tightbudget.utils.DashboardHelper
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
-import com.example.tightbudget.utils.DashboardDataManager
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Calendar
@@ -106,37 +107,97 @@ class DashboardActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Load budget goal
+                // Clear any existing data displays first
+                clearFinancialDisplays()
+
+                // Show loading indicators if needed
+                // binding.dataLoadingIndicator.visibility = View.VISIBLE
+
+                // Load budget goal for the current user
                 currentBudgetGoal = dataManager.loadActiveBudgetGoal(currentUserId)
 
                 if (currentBudgetGoal != null) {
-                    // Load category budgets
+                    // Initialize the budget goals section
+                    initBudgetGoalsSection()
+
+                    // Load category budgets for the current user's budget goal
                     categoryBudgets = dataManager.loadCategoryBudgets(currentBudgetGoal!!.id)
 
-                    // Load spending data
-                    val spendingData = dataManager.getCurrentMonthSpendingByCategory(currentUserId)
+                    // Load spending data for the current user
+                    val allSpendingData = dataManager.getCurrentMonthSpendingByCategory(currentUserId)
                     val totalSpending = dataManager.getCurrentMonthTotalSpending(currentUserId)
 
                     // Update UI with real data
                     updateBudgetSummary(currentBudgetGoal!!, totalSpending)
-                    updateCategoryProgressBars(spendingData)
-                    updateSpendingChart(spendingData)
+                    updateCategoryProgressBars(allSpendingData)
+                    updateSpendingChart(allSpendingData) // Keep all categories in the chart
+
+                    Log.d(
+                        TAG,
+                        "Loaded budget goal ($${currentBudgetGoal!!.totalBudget}) and " +
+                                "${categoryBudgets.size} category budgets, " +
+                                "${allSpendingData.size} spending categories for user $currentUserId"
+                    )
                 } else {
+                    // Initialize the budget goals section (clear or add placeholders)
+                    initBudgetGoalsSection()
+
                     // No budget goal found - show placeholder or prompt to create one
                     showNoBudgetGoalUI()
+
+                    Log.d(TAG, "No budget goal found for user $currentUserId")
                 }
 
-                // Load transactions regardless of budget goal
+                // Load transactions for the current user
                 setupRecentTransactions()
+
+                // Hide loading indicators if needed
+                // binding.dataLoadingIndicator.visibility = View.GONE
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading financial data", e)
+
+                // Hide loading indicators if needed
+                // binding.dataLoadingIndicator.visibility = View.GONE
+
                 Toast.makeText(
                     this@DashboardActivity,
                     "Error loading financial data: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
+
+                // Show fallback UI
+                showNoBudgetGoalUI()
             }
+        }
+    }
+
+    /**
+     * Clears all financial data displays to prepare for new data
+     */
+    private fun clearFinancialDisplays() {
+        // Reset budget summary
+        totalBudgetView.text = "R0.00"
+        spentSoFarView.text = "R0.00"
+        remainingView.text = "R0.00"
+
+        // Clear the chart
+        chartContainer.removeAllViews()
+
+        // Clear the legend
+        legendContainer.removeAllViews()
+
+        // Reset categoryBudgets
+        categoryBudgets = emptyList()
+
+        // Clear the current budget goal
+        currentBudgetGoal = null;
+
+        // Get the categories container and clear it (for logged-in users)
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+        val categoryContainer = root.findViewById<LinearLayout>(R.id.categoryContainer)
+        if (categoryContainer != null && currentUserId != -1) {
+            categoryContainer.removeAllViews()
         }
     }
 
@@ -146,6 +207,14 @@ class DashboardActivity : AppCompatActivity() {
     private fun loadUserInformation() {
         lifecycleScope.launch {
             try {
+                val previousUserId = currentUserId  // Store the previous user ID
+
+                currentUserId = getCurrentUserId()
+
+                if (currentUserId != previousUserId) {
+                    clearFinancialDisplays()  // Clear data if user has changed
+                }
+
                 if (currentUserId != -1) {
                     // User is logged in via ID from SharedPreferences
                     val user = db.userDao().getUserById(currentUserId)
@@ -153,7 +222,7 @@ class DashboardActivity : AppCompatActivity() {
                     if (user != null) {
                         // Set welcome message and balance
                         welcomeTextView.text = "Welcome back, ${user.fullName}!"
-                        balanceAmountView.text = "R%.2f".format(user.balance)
+                        balanceAmountView.text = "R${String.format("%,.2f", user.balance)}"
                         Log.d(TAG, "Loaded user from SharedPreferences ID: ${user.fullName}")
                     } else {
                         // If user not found by ID, try the email from intent
@@ -162,11 +231,14 @@ class DashboardActivity : AppCompatActivity() {
                             val userByEmail = db.userDao().getUserByEmail(userEmail)
                             if (userByEmail != null) {
                                 welcomeTextView.text = "Welcome back, ${userByEmail.fullName}!"
-                                balanceAmountView.text = "R%.2f".format(userByEmail.balance)
+                                balanceAmountView.text = "R${String.format("%,.2f", userByEmail.balance)}"
                                 // Save the user ID since we found them by email
                                 saveUserSession(userByEmail.id)
                                 currentUserId = userByEmail.id
                                 Log.d(TAG, "Loaded user from email and saved ID: ${userByEmail.id}")
+
+                                // Refresh financial data with newly found user ID
+                                loadFinancialData()
                             } else {
                                 showDefaultUserInfo()
                             }
@@ -181,11 +253,14 @@ class DashboardActivity : AppCompatActivity() {
                         val userByEmail = db.userDao().getUserByEmail(userEmail)
                         if (userByEmail != null) {
                             welcomeTextView.text = "Welcome back, ${userByEmail.fullName}!"
-                            balanceAmountView.text = "R%.2f".format(userByEmail.balance)
+                            balanceAmountView.text = "R${String.format("%,.2f", userByEmail.balance)}"
                             // Save the user ID since we found them by email
                             saveUserSession(userByEmail.id)
                             currentUserId = userByEmail.id
                             Log.d(TAG, "Loaded user from email and saved ID: ${userByEmail.id}")
+
+                            // Refresh financial data with newly found user ID
+                            loadFinancialData()
                         } else {
                             showDefaultUserInfo()
                         }
@@ -193,9 +268,19 @@ class DashboardActivity : AppCompatActivity() {
                         showDefaultUserInfo()
                     }
                 }
+
+                // Properly initialize the UI based on user login status
+                if (currentUserId == -1) {
+                    // User not logged in - show placeholder data
+                    showPlaceholderData()
+                }
+
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading user information", e)
                 showDefaultUserInfo()
+
+                // Still show placeholders if there's an error
+                showPlaceholderData()
             }
         }
     }
@@ -203,6 +288,9 @@ class DashboardActivity : AppCompatActivity() {
     private fun showDefaultUserInfo() {
         welcomeTextView.text = "Welcome, Guest!"
         balanceAmountView.text = "R0.00"
+
+        // Reset current user ID to ensure guest experience
+        currentUserId = -1
     }
 
     private fun updateBudgetSummary(budgetGoal: BudgetGoal, totalSpending: Double) {
@@ -219,7 +307,7 @@ class DashboardActivity : AppCompatActivity() {
         val overallProgressBar = root.findViewById<ProgressBar>(R.id.overallBudgetProgress)
         ProgressBarUtils.setProgress(overallProgressBar, totalSpending, budgetGoal.totalBudget)
 
-        // Update minimum spending goal progress if available
+        // Update minimum spending goal if available
         if (budgetGoal.minimumSpendingGoal > 0) {
             val minGoalText = root.findViewById<TextView>(R.id.minSpendingGoalText)
             val minGoalAmount = root.findViewById<TextView>(R.id.minSpendingGoalAmount)
@@ -291,169 +379,71 @@ class DashboardActivity : AppCompatActivity() {
             return
         }
 
-        // Process fixed categories first (with predefined UI elements)
-        updateFixedCategoryUI(root, spendingData, categoryBudgetMap)
-
-        // Clear any previously created dynamic categories
-        // Get count of fixed categories - assuming the first 4 items are fixed categories
-        val fixedCategoryCount = Math.min(4, categoryContainer.childCount)
-
-        // Remove only dynamic categories (keep the fixed ones)
-        while (categoryContainer.childCount > fixedCategoryCount) {
-            categoryContainer.removeViewAt(fixedCategoryCount)
+        // Clear ALL existing category views when user is logged in
+        // Only keep the container itself
+        if (currentUserId != -1) {
+            categoryContainer.removeAllViews()
         }
 
-        // Now process any additional categories dynamically
-        val processedCategories = setOf(
-            CategoryConstants.HOUSING.lowercase(),
-            CategoryConstants.FOOD.lowercase(),
-            CategoryConstants.TRANSPORT.lowercase(),
-            CategoryConstants.ENTERTAINMENT.lowercase()
-        )
+        // Only show categories with transactions or budget for signed-in users
+        if (currentUserId != -1) {
+            // Get all categories that either have spending or a budget
+            val allCategoriesToShow = (spendingData.keys + categoryBudgetMap.keys).toSet()
 
-        // Debug logging
-        Log.d(TAG, "Processing categories: spending=${spendingData.keys}, budgets=${categoryBudgetMap.keys}")
+            // Limit to top 4 categories using DashboardHelper
+            val topCategories = DashboardHelper.limitTopCategories(spendingData, 4)
 
-        // First, handle categories that have both spending and budget
-        val combinedCategories = mutableSetOf<String>()
+            // Debug logging
+            Log.d(TAG, "Categories to display: $topCategories")
 
-        // Loop through all spending categories
-        for ((categoryName, amount) in spendingData) {
-            // Skip already processed categories
-            if (processedCategories.contains(categoryName.lowercase())) {
-                continue
+            // Process each category
+            for (categoryName in topCategories.keys) { // Iterate only through the top categories
+                // Find spending for this category (default to 0 if none)
+                val amount = spendingData[categoryName] ?: 0.0
+
+                // Find budget for this category (default to 0 if none)
+                val budget = categoryBudgetMap[categoryName]?.allocation ?: 0.0
+
+                // Create and add a dynamic category UI
+                try {
+                    val categoryView = createCategoryView(categoryName, amount, budget)
+                    categoryContainer.addView(categoryView)
+                    Log.d(TAG, "Added category view for: $categoryName")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error creating view for category $categoryName: ${e.message}", e)
+                }
             }
-
-            // Track this category as processed
-            combinedCategories.add(categoryName.lowercase())
-
-            // Find budget for this category
-            val budget = categoryBudgetMap[categoryName]?.allocation ?:
-            categoryBudgetMap.entries.firstOrNull {
-                it.key.equals(categoryName, ignoreCase = true)
-            }?.value?.allocation ?: 0.0
-
-            // Create and add a dynamic category UI
-            try {
-                val categoryView = createCategoryView(categoryName, amount, budget)
-                categoryContainer.addView(categoryView)
-                Log.d(TAG, "Added dynamic category: $categoryName")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error creating view for category $categoryName: ${e.message}", e)
-            }
-        }
-
-        // Then add categories that have budget but no spending yet
-        for ((categoryName, budgetCategory) in categoryBudgetMap) {
-            if (processedCategories.contains(categoryName.lowercase()) ||
-                combinedCategories.contains(categoryName.lowercase()) ||
-                spendingData.keys.any { it.equals(categoryName, ignoreCase = true) }
-            ) {
-                continue
-            }
-
-            // Create UI for budget categories with no spending
-            try {
-                val categoryView = createCategoryView(categoryName, 0.0, budgetCategory.allocation)
-                categoryContainer.addView(categoryView)
-                Log.d(TAG, "Added budget-only category: $categoryName")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error creating view for budget category $categoryName: ${e.message}", e)
-            }
+        } else {
+            // For non-logged in users, add placeholder categories
+            addPlaceholderCategories(categoryContainer)
         }
     }
 
-    /**
-     * Updates the fixed UI elements for the standard categories
-     */
-    private fun updateFixedCategoryUI(
-        root: View,
-        spendingData: Map<String, Double>,
-        categoryBudgetMap: Map<String, CategoryBudget>
-    ) {
-        // Get progress bars for the main categories
-        val housingProgressBar = root.findViewById<ProgressBar>(R.id.housingProgressBar)
-        val foodProgressBar = root.findViewById<ProgressBar>(R.id.foodProgressBar)
-        val transportProgressBar = root.findViewById<ProgressBar>(R.id.transportProgressBar)
-        val entertainmentProgressBar = root.findViewById<ProgressBar>(R.id.entertainmentProgressBar)
 
-        // Normalise category names to handle capitalisation
-        val normalizedSpendingData = spendingData.mapKeys { it.key.lowercase() }
+    // Helper method to ensure proper emoji retrieval
+    private fun getCategoryEmojiWithFallback(categoryName: String): String {
+        // First try direct lookup
+        val emoji = EmojiUtils.getCategoryEmoji(categoryName)
 
-        // Update Housing progress
-        val housingSpending =
-            findCategoryAmount(normalizedSpendingData, "housing", "home", "rent", "mortgage")
-        val housingBudget = findCategoryBudget(categoryBudgetMap, "housing", "home", "rent")
-        if (housingProgressBar != null) {
-            ProgressBarUtils.setProgress(
-                housingProgressBar,
-                housingSpending,
-                housingBudget.coerceAtLeast(0.01)
-            )
-            root.findViewById<TextView>(R.id.housingProgressText)?.text =
-                "R%.2f/R%.2f".format(housingSpending, housingBudget)
-            root.findViewById<TextView>(R.id.housingAmount)?.text =
-                "R%.2f / R%.2f".format(housingSpending, housingBudget)
+        // If we get the fallback emoji but the category name is valid,
+        // try again with normalised name
+        if (emoji == "📁" && categoryName.isNotBlank()) {
+            val normalized = categoryName.trim().lowercase().replaceFirstChar { it.uppercase() }
+            val result = EmojiUtils.getCategoryEmoji(normalized)
+
+            // If we still get fallback, log this for debugging
+            if (result == "📁") {
+                Log.d(TAG, "No emoji found for category: '$categoryName', normalized: '$normalized'")
+            }
+
+            return result
         }
 
-        // Update Food progress
-        val foodSpending =
-            findCategoryAmount(normalizedSpendingData, "food", "groceries", "grocery")
-        val foodBudget = findCategoryBudget(categoryBudgetMap, "food", "groceries", "grocery")
-        if (foodProgressBar != null) {
-            ProgressBarUtils.setProgress(
-                foodProgressBar,
-                foodSpending,
-                foodBudget.coerceAtLeast(0.01)
-            )
-            root.findViewById<TextView>(R.id.foodProgressText)?.text =
-                "R%.2f/R%.2f".format(foodSpending, foodBudget)
-            root.findViewById<TextView>(R.id.foodAmount)?.text =
-                "R%.2f / R%.2f".format(foodSpending, foodBudget)
-        }
-
-        // Update Transport progress
-        val transportSpending = findCategoryAmount(
-            normalizedSpendingData,
-            "transport",
-            "transportation",
-            "travel",
-            "fuel"
-        )
-        val transportBudget =
-            findCategoryBudget(categoryBudgetMap, "transport", "transportation", "travel")
-        if (transportProgressBar != null) {
-            ProgressBarUtils.setProgress(
-                transportProgressBar,
-                transportSpending,
-                transportBudget.coerceAtLeast(0.01)
-            )
-            root.findViewById<TextView>(R.id.transportProgressText)?.text =
-                "R%.2f/R%.2f".format(transportSpending, transportBudget)
-            root.findViewById<TextView>(R.id.transportAmount)?.text =
-                "R%.2f / R%.2f".format(transportSpending, transportBudget)
-        }
-
-        // Update Entertainment progress
-        val entertainmentSpending =
-            findCategoryAmount(normalizedSpendingData, "entertainment", "recreation", "leisure")
-        val entertainmentBudget =
-            findCategoryBudget(categoryBudgetMap, "entertainment", "recreation")
-        if (entertainmentProgressBar != null) {
-            ProgressBarUtils.setProgress(
-                entertainmentProgressBar,
-                entertainmentSpending,
-                entertainmentBudget.coerceAtLeast(0.01)
-            )
-            root.findViewById<TextView>(R.id.entertainmentProgressText)?.text =
-                "R%.2f/R%.2f".format(entertainmentSpending, entertainmentBudget)
-            root.findViewById<TextView>(R.id.entertainmentAmount)?.text =
-                "R%.2f / R%.2f".format(entertainmentSpending, entertainmentBudget)
-        }
+        return emoji
     }
 
     /**
-     *Helper function to find category amount by checking multiple possible category names
+     * Helper function to find category amount by checking multiple possible category names
      */
     private fun findCategoryAmount(
         spendingData: Map<String, Double>,
@@ -483,7 +473,7 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     /**
-     * Creates a simplified category view that matches the hardcoded design
+     * Creates a category view that matches the hardcoded design
      */
     private fun createCategoryView(categoryName: String, spending: Double, budget: Double): View {
         // Create a simple LinearLayout container
@@ -491,7 +481,7 @@ class DashboardActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                WRAP_CONTENT
             )
             setPadding(0, 0, 0, 12.dp)
         }
@@ -500,19 +490,21 @@ class DashboardActivity : AppCompatActivity() {
         val topRow = RelativeLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                WRAP_CONTENT
             )
         }
 
+        // Get proper emoji for this category - FIXED
+        val emoji = getCategoryEmojiWithFallback(categoryName)
+
         // Category name with emoji
-        val emoji = EmojiUtils.getCategoryEmoji(categoryName)
         val nameView = TextView(this).apply {
             text = "$emoji $categoryName"
             textSize = 14f
             setTextColor(getColor(R.color.text_medium))
             layoutParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT
+                WRAP_CONTENT,
+                WRAP_CONTENT
             ).apply {
                 addRule(RelativeLayout.ALIGN_PARENT_START)
             }
@@ -524,8 +516,8 @@ class DashboardActivity : AppCompatActivity() {
             textSize = 14f
             setTextColor(getColor(R.color.text_medium))
             layoutParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT
+                WRAP_CONTENT,
+                WRAP_CONTENT
             ).apply {
                 addRule(RelativeLayout.ALIGN_PARENT_END)
             }
@@ -563,8 +555,11 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun updateSpendingChart(spendingData: Map<String, Double>) {
+        // Limit the data to the top 4 categories
+        val topSpendingData = DashboardHelper.limitTopCategories(spendingData, 4)
+
         // Convert to the format needed by ChartUtils
-        val chartData = spendingData.mapValues { it.value.toFloat() }
+        val chartData = topSpendingData.mapValues { it.value.toFloat() }
 
         // Create and display the chart
         val donutChart = ChartUtils.createDonutChartView(this, chartData)
@@ -572,7 +567,7 @@ class DashboardActivity : AppCompatActivity() {
         chartContainer.addView(donutChart)
 
         // Update the spending legend
-        updateSpendingLegend(spendingData)
+        updateSpendingLegend(topSpendingData)
     }
 
     private fun updateSpendingLegend(spendingData: Map<String, Double>) {
@@ -584,7 +579,7 @@ class DashboardActivity : AppCompatActivity() {
             val noDataText = TextView(this).apply {
                 text = "No spending data for this period"
                 textSize = 14f
-                setTextColor(getColor(R.color.text_medium))
+                setTextColor(getColor(R.color.text_light))
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -615,9 +610,12 @@ class DashboardActivity : AppCompatActivity() {
                 background = DrawableUtils.getCategoryCircle(this@DashboardActivity, categoryName)
             }
 
+            // Get emoji for the category - FIXED
+            val emoji = getCategoryEmojiWithFallback(categoryName)
+
             val label = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                text = "${EmojiUtils.getCategoryEmoji(categoryName)} $categoryName"
+                text = "$emoji $categoryName"
                 setTextColor(getColor(R.color.text_medium))
                 textSize = 14f
             }
@@ -660,7 +658,7 @@ class DashboardActivity : AppCompatActivity() {
         val noDataText = TextView(this).apply {
             text = "No budget set for this month. Create one to get started!"
             textSize = 14f
-            setTextColor(getColor(R.color.text_medium))
+            setTextColor(getColor(R.color.text_light))
             gravity = Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -670,22 +668,11 @@ class DashboardActivity : AppCompatActivity() {
         }
         legendContainer.addView(noDataText)
 
-        // Reset progress bars
-        val housingProgressBar = root.findViewById<ProgressBar>(R.id.housingProgressBar)
-        val foodProgressBar = root.findViewById<ProgressBar>(R.id.foodProgressBar)
-        val transportProgressBar = root.findViewById<ProgressBar>(R.id.transportProgressBar)
-        val entertainmentProgressBar = root.findViewById<ProgressBar>(R.id.entertainmentProgressBar)
-
-        ProgressBarUtils.setProgress(housingProgressBar, 0.0, 1.0)
-        ProgressBarUtils.setProgress(foodProgressBar, 0.0, 1.0)
-        ProgressBarUtils.setProgress(transportProgressBar, 0.0, 1.0)
-        ProgressBarUtils.setProgress(entertainmentProgressBar, 0.0, 1.0)
-
-        // Update the labels with zero amounts
-        root.findViewById<TextView>(R.id.housingAmount).text = "R0.00 / R0.00"
-        root.findViewById<TextView>(R.id.foodAmount).text = "R0.00 / R0.00"
-        root.findViewById<TextView>(R.id.transportAmount).text = "R0.00 / R0.00"
-        root.findViewById<TextView>(R.id.entertainmentAmount).text = "R0.00 / R0.00"
+        // Clear the category container
+        val categoryContainer = root.findViewById<LinearLayout>(R.id.categoryContainer)
+        if (categoryContainer != null) {
+            categoryContainer.removeAllViews()
+        }
     }
 
     private fun showPlaceholderData() {
@@ -713,21 +700,15 @@ class DashboardActivity : AppCompatActivity() {
         val budgetProgressBar = root.findViewById<ProgressBar>(R.id.budgetProgressBar)
         budgetProgressBar?.progress = percentUsed.toInt()
 
-        // Setup sample progress bars
-        ProgressBarUtils.setProgress(root.findViewById(R.id.housingProgressBar), 650.0, 800.0)
-        ProgressBarUtils.setProgress(root.findViewById(R.id.foodProgressBar), 425.75, 400.0)
-        ProgressBarUtils.setProgress(root.findViewById(R.id.transportProgressBar), 232.50, 250.0)
-        ProgressBarUtils.setProgress(
-            root.findViewById(R.id.entertainmentProgressBar),
-            205.02,
-            150.0
-        )
+        // Get the categories container
+        val categoryContainer = root.findViewById<LinearLayout>(R.id.categoryContainer)
+        if (categoryContainer != null) {
+            // Clear existing items
+            categoryContainer.removeAllViews()
 
-        // Update the labels with sample amounts
-        root.findViewById<TextView>(R.id.housingAmount).text = "R650.00 / R800.00"
-        root.findViewById<TextView>(R.id.foodAmount).text = "R425.75 / R400.00"
-        root.findViewById<TextView>(R.id.transportAmount).text = "R232.50 / R250.00"
-        root.findViewById<TextView>(R.id.entertainmentAmount).text = "R205.02 / R150.00"
+            // Add placeholder categories
+            addPlaceholderCategories(categoryContainer)
+        }
 
         // Show sample chart
         val categoryData = mapOf(
@@ -745,6 +726,189 @@ class DashboardActivity : AppCompatActivity() {
         populateSpendingLegend()
     }
 
+    private fun populateSpendingLegend() {
+        // Clear existing items
+        legendContainer.removeAllViews()
+
+        val categoryData = mapOf(
+            CategoryConstants.HOUSING to 650.0,
+            CategoryConstants.FOOD to 425.75,
+            CategoryConstants.TRANSPORT to 232.50,
+            CategoryConstants.ENTERTAINMENT to 205.02
+        )
+
+        for ((categoryName, amount) in categoryData) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 8, 0, 8)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                gravity = Gravity.CENTER_VERTICAL
+            }
+
+            val colorView = View(this).apply {
+                val params = LinearLayout.LayoutParams(12.dp, 12.dp)
+                params.setMargins(0, 0, 6.dp, 0)
+                layoutParams = params
+                background = DrawableUtils.getCategoryCircle(this@DashboardActivity, categoryName)
+            }
+
+            val emoji = EmojiUtils.getCategoryEmoji(categoryName)
+
+            val label = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                text = "$emoji ${
+                    categoryName.lowercase().replaceFirstChar { it.uppercase() }
+                }"
+                setTextColor(getColor(R.color.text_medium))
+                textSize = 14f
+            }
+
+            val value = TextView(this).apply {
+                text = "R${"%,.2f".format(amount)}"
+                setTextColor(getColor(R.color.text_dark))
+                textSize = 14f
+            }
+
+            row.addView(colorView)
+            row.addView(label)
+            row.addView(value)
+
+            legendContainer.addView(row)
+        }
+    }
+
+    /**
+     * Adds placeholder categories for guest users
+     */
+    private fun addPlaceholderCategories(container: LinearLayout) {
+        // Housing sample placeholder
+        val housingView = createCategoryView(
+            CategoryConstants.HOUSING,
+            650.0,
+            800.0
+        )
+        container.addView(housingView)
+
+        // Food sample placeholder
+        val foodView = createCategoryView(
+            CategoryConstants.FOOD,
+            425.75,
+            400.0
+        )
+        container.addView(foodView)
+
+        // Transport sample placeholder
+        val transportView = createCategoryView(
+            CategoryConstants.TRANSPORT,
+            232.50,
+            250.0
+        )
+        container.addView(transportView)
+
+        // Entertainment sample placeholder
+        val entertainmentView = createCategoryView(
+            CategoryConstants.ENTERTAINMENT,
+            205.02,
+            150.0
+        )
+        container.addView(entertainmentView)
+    }
+
+    /**
+     * Sets up the recent transactions list.
+     */
+    private fun setupRecentTransactions() {
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+        val recyclerView = root.findViewById<RecyclerView>(R.id.recentTransactionsRecyclerView)
+
+        // Set up RecyclerView with empty adapter initially
+        val transactionAdapter = TransactionAdapter(emptyList()) { clickedTransaction ->
+            TransactionDetailBottomSheet.newInstance(clickedTransaction)
+                .show(supportFragmentManager, "TransactionDetail")
+        }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = transactionAdapter
+
+        // Check if user is logged in
+        if (currentUserId == -1) {
+            // Show placeholder data for not logged in users
+            val dummyTransactions = listOf(
+                Transaction(
+                    id = 1,
+                    userId = -1,
+                    merchant = "Checkers",
+                    category = "Food",
+                    amount = 98.00,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 2,
+                    userId = -1,
+                    merchant = "Uber",
+                    category = "Transport",
+                    amount = 45.50,
+                    date = Date(),
+                    isExpense = true
+                ),
+                Transaction(
+                    id = 3,
+                    userId = -1,
+                    merchant = "Salary",
+                    category = "Income",
+                    amount = 2500.00,
+                    date = Date(),
+                    isExpense = false
+                )
+            )
+            transactionAdapter.updateList(dummyTransactions)
+            return
+        }
+
+        // Load actual transactions using the data manager
+        lifecycleScope.launch {
+            try {
+                // Get recent transactions for the current user, limiting to top 4
+                val transactions = dataManager.loadRecentTransactions(currentUserId, 4)
+
+                runOnUiThread {
+                    if (transactions.isEmpty()) {
+                        // Handle empty state - maybe show a message
+                        val emptyView = root.findViewById<TextView>(R.id.emptyTransactionsMessage)
+                        if (emptyView != null) {
+                            emptyView.visibility = View.VISIBLE
+                            recyclerView.visibility = View.GONE
+                        }
+                        Log.d(TAG, "No transactions found for user $currentUserId")
+                    } else {
+                        // Update adapter with real data
+                        val emptyView = root.findViewById<TextView>(R.id.emptyTransactionsMessage)
+                        if (emptyView != null) {
+                            emptyView.visibility = View.GONE
+                            recyclerView.visibility = View.VISIBLE
+                        }
+                        Log.d(
+                            TAG,
+                            "Loaded ${transactions.size} transactions for user $currentUserId"
+                        )
+                        transactionAdapter.updateList(transactions)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading transactions", e)
+                Toast.makeText(
+                    this@DashboardActivity,
+                    "Error loading transactions: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     private fun saveUserSession(userId: Int) {
         val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
         sharedPreferences.edit().putInt("current_user_id", userId).apply()
@@ -756,6 +920,30 @@ class DashboardActivity : AppCompatActivity() {
         val userId = sharedPreferences.getInt("current_user_id", -1)
         Log.d(TAG, "Retrieved userId from SharedPreferences: $userId")
         return userId
+    }
+
+    /**
+     * Ensures proper initialization of the budget goals section based on user login status
+     */
+    private fun initBudgetGoalsSection() {
+        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
+
+        // Get the container where category items should be displayed
+        val categoryContainer = root.findViewById<LinearLayout>(R.id.categoryContainer)
+
+        if (categoryContainer == null) {
+            Log.e(TAG, "Category container not found in layout")
+            return
+        }
+
+        // Clear all existing views in the container
+        categoryContainer.removeAllViews()
+
+        // For logged-in users with no budget or spending, show empty state
+        if (currentUserId != -1 && currentBudgetGoal == null) {
+            showNoBudgetGoalUI()
+        }
+        // Otherwise, categories will be added dynamically in updateCategoryProgressBars
     }
 
     /**
@@ -850,151 +1038,6 @@ class DashboardActivity : AppCompatActivity() {
         // Simply hide the achievement section for Part 2 (Gamification feature not implemented yet)
         val achievementSection = root.findViewById<LinearLayout>(R.id.achievementsSection)
         achievementSection?.visibility = View.GONE
-    }
-
-    private fun populateSpendingLegend() {
-        val legendContainer = findViewById<LinearLayout>(R.id.legendContainer)
-
-        // Clear existing items
-        legendContainer.removeAllViews()
-
-        val categoryData = mapOf(
-            CategoryConstants.HOUSING to 650.0,
-            CategoryConstants.FOOD to 425.75,
-            CategoryConstants.TRANSPORT to 232.50,
-            CategoryConstants.ENTERTAINMENT to 205.02
-        )
-
-        for ((categoryName, amount) in categoryData) {
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 8, 0, 8)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                gravity = Gravity.CENTER_VERTICAL
-            }
-
-            val colorView = View(this).apply {
-                val params = LinearLayout.LayoutParams(12.dp, 12.dp)
-                params.setMargins(0, 0, 6.dp, 0)
-                layoutParams = params
-                background = DrawableUtils.getCategoryCircle(this@DashboardActivity, categoryName)
-            }
-
-            val label = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                text = "${EmojiUtils.getCategoryEmoji(categoryName)} ${
-                    categoryName.lowercase().replaceFirstChar { it.uppercase() }
-                }"
-                setTextColor(getColor(R.color.text_medium))
-                textSize = 14f
-            }
-
-            val value = TextView(this).apply {
-                text = "R${"%,.2f".format(amount)}"
-                setTextColor(getColor(R.color.text_dark))
-                textSize = 14f
-            }
-
-            row.addView(colorView)
-            row.addView(label)
-            row.addView(value)
-
-            legendContainer.addView(row)
-        }
-    }
-
-    /**
-     * Sets up the recent transactions list.
-     */
-    private fun setupRecentTransactions() {
-        val root = findViewById<View>(R.id.dashboardMainCardsRoot)
-        val recyclerView = root.findViewById<RecyclerView>(R.id.recentTransactionsRecyclerView)
-
-        // Set up RecyclerView with empty adapter initially
-        val transactionAdapter = TransactionAdapter(emptyList()) { clickedTransaction ->
-            TransactionDetailBottomSheet.newInstance(clickedTransaction)
-                .show(supportFragmentManager, "TransactionDetail")
-        }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = transactionAdapter
-
-        // Check if user is logged in
-        if (currentUserId == -1) {
-            // Show placeholder data for not logged in users
-            val dummyTransactions = listOf(
-                Transaction(
-                    id = 1,
-                    userId = -1,
-                    merchant = "Checkers",
-                    category = "Food",
-                    amount = 98.00,
-                    date = Date(),
-                    isExpense = true
-                ),
-                Transaction(
-                    id = 2,
-                    userId = -1,
-                    merchant = "Uber",
-                    category = "Transport",
-                    amount = 45.50,
-                    date = Date(),
-                    isExpense = true
-                ),
-                Transaction(
-                    id = 3,
-                    userId = -1,
-                    merchant = "Salary",
-                    category = "Income",
-                    amount = 2500.00,
-                    date = Date(),
-                    isExpense = false
-                )
-            )
-            transactionAdapter.updateList(dummyTransactions)
-            return
-        }
-
-        // Load actual transactions using the data manager
-        lifecycleScope.launch {
-            try {
-                val transactions = dataManager.loadRecentTransactions(currentUserId)
-
-                runOnUiThread {
-                    if (transactions.isEmpty()) {
-                        // Handle empty state - maybe show a message
-                        val emptyView = root.findViewById<TextView>(R.id.emptyTransactionsMessage)
-                        if (emptyView != null) {
-                            emptyView.visibility = View.VISIBLE
-                            recyclerView.visibility = View.GONE
-                        }
-                        Log.d(TAG, "No transactions found for user $currentUserId")
-                    } else {
-                        // Update adapter with real data
-                        val emptyView = root.findViewById<TextView>(R.id.emptyTransactionsMessage)
-                        if (emptyView != null) {
-                            emptyView.visibility = View.GONE
-                            recyclerView.visibility = View.VISIBLE
-                        }
-                        Log.d(
-                            TAG,
-                            "Loaded ${transactions.size} transactions for user $currentUserId"
-                        )
-                        transactionAdapter.updateList(transactions)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading transactions", e)
-                Toast.makeText(
-                    this@DashboardActivity,
-                    "Error loading transactions: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
     }
 
     private val Int.dp: Int
