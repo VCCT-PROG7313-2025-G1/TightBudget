@@ -1,6 +1,5 @@
 package com.example.tightbudget.ui
 
-import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -14,12 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.FragmentCreateCategoryBinding
 import com.example.tightbudget.models.Category
+import com.example.tightbudget.utils.CategoryConstants
+import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
-import androidx.core.graphics.toColorInt
-import com.example.tightbudget.utils.CategoryConstants
-import com.example.tightbudget.utils.DrawableUtils
 
 /**
  * A bottom sheet dialog for creating a new custom category.
@@ -127,6 +125,7 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
         Log.d("CreateCategorySheet", "Fragment loaded successfully")
     }
 
+    /// Set up the emoji grid with emojis for different categories
     private fun setupIconGrid() {
         val categoryNames = listOf(
             "Food", "Transport", "Entertainment", "Housing", "Utilities",
@@ -134,9 +133,10 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
             "Salary", "Gifts", "Pets", "Subscriptions", "Insurance",
             "Fitness", "Personal Care", "Savings", "Childcare", "Donations"
         )
-
+        // Remove all previous views from the grid
         binding.iconGrid.removeAllViews()
 
+        // For each category name, create a TextView with the emoji and set up a click listener
         for (categoryName in categoryNames) {
             val emoji = EmojiUtils.getCategoryEmoji(categoryName)
 
@@ -157,6 +157,7 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    /// Set up the color grid with color options
     private fun setupColorGrid() {
         val colorOptions = listOf(
             "#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
@@ -166,6 +167,7 @@ class CreateCategoryBottomSheet : BottomSheetDialogFragment() {
 
         binding.colorGrid.removeAllViews()
 
+        // For each color option, create a View with the color and set up a click listener
         for (colorHex in colorOptions) {
             val colorCircle = View(requireContext()).apply {
                 layoutParams = ViewGroup.MarginLayoutParams(90, 90).apply {
