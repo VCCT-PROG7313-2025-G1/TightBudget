@@ -1,8 +1,10 @@
 package com.example.tightbudget
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
@@ -14,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
@@ -34,6 +37,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+// Constants for camera and storage permissions
+private const val CAMERA_PERMISSION_CODE = 100
+private const val STORAGE_PERMISSION_CODE = 101
+
 class AddTransactionActivity : AppCompatActivity() {
     // Binds layout elements from activity_add_transaction.xml to this file
     private lateinit var binding: ActivityAddTransactionBinding
@@ -45,6 +52,90 @@ class AddTransactionActivity : AppCompatActivity() {
     private var isRecurring = false
     private var selectedDate = Calendar.getInstance()
     private var receiptImageUri: Uri? = null
+
+    private fun checkAndRequestPermissions() {
+        // Check if we have camera permission
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Request camera permission if we don't have it
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_CODE
+            )
+        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // For Android 9 (Pie) and below, also check storage permission
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                STORAGE_PERMISSION_CODE
+            )
+        } else {
+            // We have all the permissions, so proceed with taking the photo
+            takePhoto()
+        }
+    }
+
+    // Method to handle permission results
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            CAMERA_PERMISSION_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Camera permission granted, now check storage if needed
+                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+                        ContextCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            STORAGE_PERMISSION_CODE
+                        )
+                    } else {
+                        // All permissions granted, proceed with camera
+                        takePhoto()
+                    }
+                } else {
+                    // Permission denied
+                    Toast.makeText(
+                        this,
+                        "Camera permission is required to take receipt photos",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            STORAGE_PERMISSION_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Storage permission granted, proceed with camera
+                    takePhoto()
+                } else {
+                    // Permission denied
+                    Toast.makeText(
+                        this,
+                        "Storage permission is required to save receipt photos",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
 
     // Handles capturing a receipt photo using the device camera
     private val takePictureLauncher = registerForActivityResult(
@@ -286,7 +377,15 @@ class AddTransactionActivity : AppCompatActivity() {
         android.app.AlertDialog.Builder(this)
             .setTitle("Add Receipt Photo")
             .setItems(options) { _, which ->
-                if (which == 0) takePhoto() else chooseFromGallery()
+                when (which) {
+                    0 -> checkAndRequestPermissions() // Check permissions before taking photo
+                    1 -> chooseFromGallery()
+                    2 -> {
+                        if (isRunningOnEmulator()) {
+                            useSampleImage()
+                        }
+                    }
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
