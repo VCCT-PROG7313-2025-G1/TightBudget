@@ -1,17 +1,13 @@
 package com.example.tightbudget.utils
 
-import android.content.Context
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.widget.TextView
-import com.example.tightbudget.models.Category
 
 /**
  * Utility class for emoji icons in the TightBudget app
  */
 object EmojiUtils {
 
-    // Category Emojis
+    // Category Emojis - Main reference for all category emojis
     private const val EMOJI_HOUSING = "🏠"
     private const val EMOJI_FOOD = "🍔"
     private const val EMOJI_TRANSPORT = "🚗"
@@ -20,49 +16,28 @@ object EmojiUtils {
     private const val EMOJI_UTILITIES = "💡"
     private const val EMOJI_HEALTH = "💊"
     private const val EMOJI_OTHER = "📋"
+    private const val EMOJI_INCOME = "💰"
+    private const val EMOJI_UNKNOWN = "📁"
 
-    // Achievement Emojis
-    private const val EMOJI_SAVER = "💰"
-    private const val EMOJI_CONSISTENT = "📅"
-    private const val EMOJI_TRANSPORT_ACHIEVEMENT = "🚗"
-    private const val EMOJI_LOCKED = "🔒"
-
-    // Action Emojis
-    private const val EMOJI_ADD_EXPENSE = "🧾"
-    private const val EMOJI_VIEW_BUDGET = "📊"
-    private const val EMOJI_GOALS = "🏆"
-    private const val EMOJI_FLAME = "🔥"
-    private const val EMOJI_PROFILE = "👤"
-
-    // Transaction Type Emojis
-    private const val EMOJI_SHOPPING_CART = "🛒"
-    private const val EMOJI_GAS_STATION = "⛽"
-    private const val EMOJI_FOOD_RESTAURANT = "🍗"
-    private const val EMOJI_SALARY = "💼"
-    private const val EMOJI_ADD = "➕"
-
-    // Bottom Navigation Emojis
-    private const val EMOJI_HOME = "🏠"
-    private const val EMOJI_REPORTS = "📈"
-    private const val EMOJI_WALLET = "👛"
-    private const val EMOJI_SETTINGS = "⚙️"
+    // Standard text spacing between emoji and text
+    private const val EMOJI_TEXT_SPACING = " "
 
     // Category maps for fuzzy matching
     private val categoryEmojiMap = mapOf(
-        // Housing-related
-        "housing" to "🏠",
-        "home" to "🏠",
-        "rent" to "🏠",
-        "mortgage" to "🏠",
-        "apartment" to "🏠",
-        "utilities" to "💡",
-        "electricity" to "💡",
+        "housing" to EMOJI_HOUSING,
+        "home" to EMOJI_HOUSING,
+        "rent" to EMOJI_HOUSING,
+        "mortgage" to EMOJI_HOUSING,
+        "apartment" to EMOJI_HOUSING,
+        "utilities" to EMOJI_UTILITIES,
+        "electricity" to EMOJI_UTILITIES,
         "water" to "💧",
         "gas" to "🔥",
         "internet" to "🌐",
+        "wifi" to "📶",
 
         // Food-related
-        "food" to "🍔",
+        "food" to EMOJI_FOOD,
         "groceries" to "🛒",
         "grocery" to "🛒",
         "restaurant" to "🍽️",
@@ -71,8 +46,8 @@ object EmojiUtils {
         "coffee" to "☕",
 
         // Transport-related
-        "transport" to "🚗",
-        "transportation" to "🚗",
+        "transport" to EMOJI_TRANSPORT,
+        "transportation" to EMOJI_TRANSPORT,
         "travel" to "✈️",
         "gas" to "⛽",
         "fuel" to "⛽",
@@ -84,29 +59,31 @@ object EmojiUtils {
         "taxi" to "🚕",
 
         // Entertainment-related
-        "entertainment" to "🎮",
+        "entertainment" to EMOJI_ENTERTAINMENT,
         "recreation" to "🎮",
-        "movies" to "🎬",
+        "movies" to EMOJI_ENTERTAINMENT,
         "games" to "🎮",
         "fun" to "🎉",
         "hobby" to "🎨",
         "music" to "🎵",
+        "concert" to "🎤",
+        "spotify" to "🎵",
         "streaming" to "📺",
         "netflix" to "📺",
 
         // Shopping-related
-        "shopping" to "🛍️",
+        "shopping" to EMOJI_SHOPPING,
         "clothes" to "👚",
         "clothing" to "👚",
         "shoes" to "👟",
         "accessories" to "👜",
 
         // Health-related
-        "health" to "💊",
+        "health" to EMOJI_HEALTH,
         "medical" to "🏥",
         "doctor" to "👨‍⚕️",
-        "pharmacy" to "💊",
-        "medicine" to "💊",
+        "pharmacy" to EMOJI_HEALTH,
+        "medicine" to EMOJI_HEALTH,
         "fitness" to "🏋️",
         "gym" to "🏋️",
 
@@ -120,11 +97,15 @@ object EmojiUtils {
         "tuition" to "🎓",
 
         // Income-related
-        "income" to "💰",
-        "salary" to "💰",
-        "paycheck" to "💰",
-        "earnings" to "💰",
-        "bonus" to "💰",
+        "income" to EMOJI_INCOME,
+        "salary" to EMOJI_INCOME,
+        "paycheck" to EMOJI_INCOME,
+        "earnings" to EMOJI_INCOME,
+        "wages" to EMOJI_INCOME,
+        "dividends" to EMOJI_INCOME,
+        "interest" to EMOJI_INCOME,
+        "interest income" to EMOJI_INCOME,
+        "bonus" to EMOJI_INCOME,
 
         // Others
         "pets" to "🐶",
@@ -137,21 +118,42 @@ object EmojiUtils {
         "gifts" to "🎁",
 
         // Catch-all
-        "other" to "📁",
-        "miscellaneous" to "📁",
-        "misc" to "📁"
+        "other" to EMOJI_OTHER,
+        "miscellaneous" to EMOJI_OTHER,
+        "misc" to EMOJI_OTHER
     )
 
     /**
      * Get emoji for a specific category with improved fuzzy matching.
-     * This method attempts to find the closest match for the category name.
+     * This is the CENTRAL method to get category emojis - all code should use this method
+     * rather than maintaining separate emoji mappings.
+     *
+     * @param category The category name to find an emoji for
+     * @return The emoji string for the category, with fallback to default emoji
      */
     fun getCategoryEmoji(category: String): String {
-        // Normalise the category name
+        // Handle null or empty case
+        if (category.isNullOrBlank()) {
+            return EMOJI_UNKNOWN
+        }
+
+        // Normalize the category name
         val normalizedCategory = category.trim().lowercase()
 
         // Direct match first
         categoryEmojiMap[normalizedCategory]?.let { return it }
+
+        // Try specific category constants for exact matches
+        when (normalizedCategory) {
+            "food", "food & drink" -> return EMOJI_FOOD
+            "transport", "transportation" -> return EMOJI_TRANSPORT
+            "housing", "rent", "home" -> return EMOJI_HOUSING
+            "entertainment" -> return EMOJI_ENTERTAINMENT
+            "shopping" -> return EMOJI_SHOPPING
+            "health", "healthcare" -> return EMOJI_HEALTH
+            "utilities" -> return EMOJI_UTILITIES
+            "income" -> return EMOJI_INCOME
+        }
 
         // Try to find a partial match if no direct match
         for ((key, emoji) in categoryEmojiMap) {
@@ -161,7 +163,33 @@ object EmojiUtils {
         }
 
         // Return default if no match found
-        return "📁" // Default fallback emoji
+        return EMOJI_UNKNOWN
+    }
+
+    /**
+     * Get a standard display text with emoji prefix
+     * Ensures consistent spacing between emoji and text
+     *
+     * @param category The category name
+     * @return Formatted string with emoji and text
+     */
+    fun getEmojiCategoryText(category: String): String {
+        val emoji = getCategoryEmoji(category)
+        return "$emoji$EMOJI_TEXT_SPACING$category"
+    }
+
+    /**
+     * Set emoji with text in a TextView, with consistent spacing
+     */
+    fun setEmojiText(textView: TextView, emoji: String, text: String) {
+        textView.text = "$emoji$EMOJI_TEXT_SPACING$text"
+    }
+
+    /**
+     * Set emoji for a category in a TextView
+     */
+    fun setCategoryWithEmoji(textView: TextView, category: String) {
+        setEmojiText(textView, getCategoryEmoji(category), category)
     }
 
     /**
@@ -196,12 +224,4 @@ object EmojiUtils {
             else -> "⚙️" // Default fallback emoji
         }
     }
-
-    /**
-     * Set emoji with text in a TextView
-     */
-    fun setEmojiText(textView: TextView, emoji: String, text: String) {
-        textView.text = "$emoji $text"
-    }
-
 }
