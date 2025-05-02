@@ -1,6 +1,5 @@
 package com.example.tightbudget
 
-import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -8,7 +7,12 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.RelativeLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,7 +32,6 @@ import com.example.tightbudget.utils.EmojiUtils
 import com.example.tightbudget.utils.ProgressBarUtils
 import kotlinx.coroutines.launch
 import java.util.Date
-import java.util.Calendar
 
 /**
  * Dashboard screen showing financial summary, goals, charts and quick access buttons.
@@ -420,26 +423,11 @@ class DashboardActivity : AppCompatActivity() {
     }
 
 
-    // Helper method to ensure proper emoji retrieval
-    private fun getCategoryEmojiWithFallback(categoryName: String): String {
-        // First try direct lookup
-        val emoji = EmojiUtils.getCategoryEmoji(categoryName)
-
-        // If we get the fallback emoji but the category name is valid,
-        // try again with normalised name
-        if (emoji == "📁" && categoryName.isNotBlank()) {
-            val normalized = categoryName.trim().lowercase().replaceFirstChar { it.uppercase() }
-            val result = EmojiUtils.getCategoryEmoji(normalized)
-
-            // If we still get fallback, log this for debugging
-            if (result == "📁") {
-                Log.d(TAG, "No emoji found for category: '$categoryName', normalized: '$normalized'")
-            }
-
-            return result
-        }
-
-        return emoji
+    /**
+     * Get emoji for a category using the central EmojiUtils
+     */
+    private fun getCategoryEmoji(categoryName: String): String {
+        return EmojiUtils.getCategoryEmoji(categoryName)
     }
 
     /**
@@ -495,7 +483,7 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Get proper emoji for this category - FIXED
-        val emoji = getCategoryEmojiWithFallback(categoryName)
+        val emoji = EmojiUtils.getCategoryEmoji(categoryName)
 
         // Category name with emoji
         val nameView = TextView(this).apply {
@@ -611,7 +599,7 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             // Get emoji for the category - FIXED
-            val emoji = getCategoryEmojiWithFallback(categoryName)
+            val emoji = EmojiUtils.getCategoryEmoji(categoryName)
 
             val label = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)

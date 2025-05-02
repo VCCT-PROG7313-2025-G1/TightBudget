@@ -24,13 +24,15 @@ import com.example.tightbudget.models.CategoryItem
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.ui.CategoryPickerBottomSheet
 import com.example.tightbudget.ui.CreateCategoryBottomSheet
+import com.example.tightbudget.utils.CategoryConstants
 import com.example.tightbudget.utils.EmojiUtils
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
-import com.example.tightbudget.utils.CategoryConstants
-import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class AddTransactionActivity : AppCompatActivity() {
     // Binds layout elements from activity_add_transaction.xml to this file

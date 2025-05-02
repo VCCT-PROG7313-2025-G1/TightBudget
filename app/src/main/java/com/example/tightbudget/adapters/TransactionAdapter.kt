@@ -8,8 +8,10 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tightbudget.R
 import com.example.tightbudget.models.Transaction
+import com.example.tightbudget.utils.EmojiUtils
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 /**
  * Adapter for displaying a list of transactions (expenses or income)
@@ -87,17 +89,9 @@ class TransactionAdapter(
     }
 
     /**
-     * Very basic emoji mapping (this can be improved with a real utility)
+     * Gets the emoji for a category using the central EmojiUtils
      */
     private fun getCategoryEmoji(category: String): String {
-        return when (category.lowercase()) {
-            "food" -> "🍔"
-            "transport" -> "🚗"
-            "entertainment" -> "🎬"
-            "housing" -> "🏠"
-            "savings" -> "💰"
-            "income" -> "💵"
-            else -> "➕" // plus emoji as fallback
-        }
+        return EmojiUtils.getCategoryEmoji(category)
     }
 }

@@ -14,7 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.tightbudget.R
 import com.example.tightbudget.data.AppDatabase
 import com.example.tightbudget.databinding.FragmentTransactionDetailBinding
-import com.example.tightbudget.models.Category
 import com.example.tightbudget.models.Transaction
 import com.example.tightbudget.utils.DrawableUtils
 import com.example.tightbudget.utils.EmojiUtils
@@ -25,7 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 /**
  * A bottom sheet dialog that displays detailed information about a selected transaction.
