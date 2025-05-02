@@ -5,6 +5,13 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+/**
+ * This data class represents a budget goal in the app.
+ * It is used to store information about each user's budget goals, including the month, year,
+ * total budget, and whether the goal is active.
+ * The class is annotated with @Entity to indicate that it is a Room database entity.
+ */
+
 @Entity(
     tableName = "category_budgets",
     foreignKeys = [

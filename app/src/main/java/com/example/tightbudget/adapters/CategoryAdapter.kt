@@ -37,6 +37,9 @@ class CategoryAdapter(
         notifyDataSetChanged()
     }
 
+    /**
+     * ViewHolder class that holds references to the views in each category item layout.
+     */
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val card: CardView = itemView.findViewById(R.id.categoryCard)
         private val emoji: TextView = itemView.findViewById(R.id.categoryEmoji)

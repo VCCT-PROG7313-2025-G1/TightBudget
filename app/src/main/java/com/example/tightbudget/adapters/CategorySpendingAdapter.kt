@@ -36,6 +36,9 @@ class CategorySpendingAdapter(
         notifyDataSetChanged()
     }
 
+    /**
+     * ViewHolder class that holds references to the views in each category spending item layout.
+     */
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val emoji: TextView = itemView.findViewById(R.id.categoryEmoji)
         private val name: TextView = itemView.findViewById(R.id.categoryName)
@@ -79,7 +82,12 @@ class CategorySpendingAdapter(
             }
 
             // Set progress text
-            progressText.text = "R${String.format("%,.2f", category.amount)} / R${String.format("%,.2f", category.budget)} (${progressPercentage.toInt()}%)"
+            progressText.text = "R${String.format("%,.2f", category.amount)} / R${
+                String.format(
+                    "%,.2f",
+                    category.budget
+                )
+            } (${progressPercentage.toInt()}%)"
 
             // Set progress bar
             progressBar.max = 100
